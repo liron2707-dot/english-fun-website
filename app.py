@@ -3,106 +3,112 @@ import random
 import time
 
 # --- הגדרות עמוד ---
-st.set_page_config(page_title="Nexus Academy Pro", layout="wide")
+st.set_page_config(page_title="SmartEnglish Pro", layout="wide", initial_sidebar_state="expanded")
 
-# --- CSS מותאם אישית (עיצוב עתידני) ---
+# --- CSS משופר (תיקון פונטים ו-RTL) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;600;900&display=swap');
     
-    [data-testid="stAppViewContainer"] { background: radial-gradient(circle at top right, #0f172a, #1e293b); color: white; font-family: 'Heebo', sans-serif; direction: rtl; }
+    /* יישור לימין לכל האפליקציה */
+    .stApp { direction: rtl; font-family: 'Heebo', sans-serif; }
     
-    .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 30px; }
+    /* תיקון גודל פונט לרדיו ותשובות */
+    [data-testid="stRadio"] label p { font-size: 22px !important; font-weight: bold; }
     
-    h1, h2, h3 { color: #38bdf8 !important; text-align: right; }
+    /* עיצוב כרטיסיות */
+    .big-card { background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 2px solid #e0f2fe; }
     
-    /* הגדלת פונטים של רדיו */
-    [role="radiogroup"] label { font-size: 22px !important; color: white !important; }
+    h1, h2 { color: #0369a1 !important; text-align: right; }
     
-    .stButton>button { background: linear-gradient(90deg, #3b82f6, #8b5cf6) !important; color: white !important; border-radius: 12px !important; height: 60px !important; width: 100%; font-size: 20px !important; border: none; }
+    .stButton>button { width: 100%; height: 60px; font-size: 22px !important; border-radius: 15px !important; background: linear-gradient(to right, #3b82f6, #2563eb) !important; color: white !important; }
     
-    .reward-box { border: 2px solid #fbbf24; border-radius: 15px; padding: 15px; background: rgba(251, 191, 36, 0.1); text-align: center; }
+    .sidebar-content { font-size: 18px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- ניהול משתמשים ונתונים ---
-if 'user' not in st.session_state:
-    st.session_state.user = None
-    st.session_state.level = 1
-    st.session_state.age = 12
-    st.session_state.gender = "בן"
-    st.session_state.inventory = []
-    st.session_state.stage = "Vocab" # Vocab, Grammar, Story, Video, Boss
+# --- ניהול משתמשים (Memory) ---
+if 'profile' not in st.session_state:
+    st.session_state.profile = None
 
-# --- מסך כניסה ---
-if not st.session_state.user:
-    st.markdown("<h1 style='text-align:center;'>NEXUS ACADEMY - כניסה למערכת</h1>", unsafe_allow_html=True)
-    with st.container():
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        name = st.text_input("שם השחקן:")
-        age = st.number_input("גיל:", 7, 18, 12)
+# --- דף כניסה ---
+if st.session_state.profile is None:
+    st.title("🚀 ברוכים הבאים לאקדמיית האנגלית")
+    with st.form("login"):
+        name = st.text_input("שם הילד/ה:")
+        age = st.number_input("גיל:", 6, 18, 9)
         gender = st.selectbox("מגדר:", ["בן", "בת"])
-        if st.button("התחל הרפתקה"):
-            st.session_state.user = name
-            st.session_state.age = age
-            st.session_state.gender = gender
+        if st.form_submit_button("התחל משחק"):
+            st.session_state.profile = {
+                "name": name, "age": age, "gender": gender, 
+                "level": 1, "score": 0, "rewards": []
+            }
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
     st.stop()
 
-# --- פונקציית פרסים ---
+# --- פונקציות עזר למנוע המשחק ---
 def get_reward(level, gender):
-    rarity = "נדיר" if level > 20 else "רגיל"
-    rarity = "אגדי" if level > 50 else rarity
+    # לוגיקת נדירות
+    rarity = "נדיר" if level > 10 else "רגיל"
+    rarity = "אגדי" if level > 30 else rarity
+    rarity = "מיתולוגי" if level > 50 else rarity
     
-    items_boy = ["קלף מסי", "כדור מוזהב", "חולצת כדורגל", "נעל זהב"]
-    items_girl = ["פוקימון הולוגרפי", "גביע קריסטל", "קסם נדיר", "סיכת כוכב"]
-    
-    item = random.choice(items_boy if gender == "בן" else items_girl)
-    return f"{rarity} ✨ {item}"
-
-# --- בסיס נתונים (דוגמה למבנה - כאן תוסיף עוד!) ---
-GAME_DB = {
-    1: {"q": "What is the meaning of 'Talent'?", "options": ["כישרון", "שולחן", "ספר"], "ans": "כישרון", "type": "Vocab"},
-    2: {"q": "Translate: 'Teamwork'", "options": ["עבודת צוות", "משחק", "לימוד"], "ans": "עבודת צוות", "type": "Vocab"},
-    # כאן תוסיף עוד עשרות שורות בסגנון הזה...
-}
-
-# --- דשבורד בצד ---
-with st.sidebar:
-    st.markdown(f"## 👤 {st.session_state.user}")
-    st.markdown(f"### 🛡️ רמה: {st.session_state.level}/99")
-    st.markdown("---")
-    st.markdown("### 🎒 הארנק שלי:")
-    if not st.session_state.inventory: st.write("אין פרסים עדיין...")
-    for item in st.session_state.inventory: st.markdown(f"<div class='reward-box'>{item}</div>", unsafe_allow_html=True)
-
-# --- ממשק משחק מרכזי ---
-st.markdown(f"<h1>שלב {st.session_state.level}</h1>", unsafe_allow_html=True)
-
-# לוגיקה לדילוג רמות (לצורך הדגמה)
-data = GAME_DB.get(st.session_state.level, {"q": "שלב בונוס! מה זה Apple?", "options": ["תפוח", "בננה", "עגבניה"], "ans": "תפוח"})
-
-st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-st.markdown(f"<h3>{data['q']}</h3>", unsafe_allow_html=True)
-
-# רדיו עם עיצוב גדול
-choice = st.radio("בחר תשובה:", data['options'], index=None, label_visibility="collapsed")
-
-if st.button("אישור תשובה"):
-    if choice == data['ans']:
-        st.success("✅ נכון מאוד!")
-        st.session_state.level += 1
+    # בנק פרסים לפי מגדר
+    if gender == "בן":
+        items = ["⚽ קלף שחקן ליגת האלופות", "⚡ פוקימון אגדי", "🏎️ מכונית מרוץ זהב"]
+    else:
+        items = ["🦄 חד קרן קסום", "✨ שרביט כוכבים", "🎨 ערכת צבעים מלכותית"]
         
-        # פרס כל 10 שלבים
-        if st.session_state.level % 10 == 0:
-            reward = get_reward(st.session_state.level, st.session_state.gender)
-            st.session_state.inventory.append(reward)
+    return f"{rarity} ✨ {random.choice(items)}"
+
+# --- מסד נתונים (תוכל להרחיב כאן ל-99 שלבים) ---
+# הערה: פה הוספתי דוגמה לאיך בונים שלב. אפשר לייצר פונקציה שתגריל שאלות לפי גיל.
+def get_level_data(level):
+    # רמת קושי עולה ככל שה-level גבוה יותר
+    return {
+        "title": f"שלב {level}: הרפתקה באנגלית",
+        "question": f"מה התרגום הנכון ל-Level {level}?",
+        "options": ["אופציה א", "אופציה ב", "אופציה ג"],
+        "correct": "אופציה א",
+        "video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ" # שנה לכל שלב
+    }
+
+# --- דשבורד בצד (הנתונים של הילד) ---
+with st.sidebar:
+    p = st.session_state.profile
+    st.write(f"## 👤 {p['name']}")
+    st.write(f"### 🛡️ שלב: {p['level']}")
+    st.progress(min((p['level']-1)/99, 1.0))
+    st.write("---")
+    st.write("### 🎒 הארנק שלי:")
+    for r in p['rewards']: st.write(f"- {r}")
+
+# --- ממשק המשחק ---
+p = st.session_state.profile
+data = get_level_data(p['level'])
+
+st.markdown(f"<h1>{data['title']}</h1>", unsafe_allow_html=True)
+st.video(data['video'])
+
+st.markdown('<div class="big-card">', unsafe_allow_html=True)
+st.subheader(data['question'])
+choice = st.radio("בחר תשובה:", data['options'], index=None)
+
+if st.button("בדוק תשובה"):
+    if choice == data['correct']:
+        st.success("✅ כל הכבוד!")
+        p['score'] += 100
+        p['level'] += 1
+        
+        # זכייה בפרס כל 5 שלבים
+        if p['level'] % 5 == 0:
+            reward = get_reward(p['level'], p['gender'])
+            p['rewards'].append(reward)
             st.balloons()
-            st.success(f"🎊 זכית בפרס: {reward}!")
+            st.success(f"🎊 זכית בפרס חדש: {reward}")
             
         time.sleep(1)
         st.rerun()
     else:
-        st.error("❌ טעות, נסה שוב!")
+        st.error("❌ לא נורא, נסה שוב.")
 st.markdown('</div>', unsafe_allow_html=True)
