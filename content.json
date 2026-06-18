@@ -1,0 +1,26 @@
+{
+  "7-9": {
+    "1": {
+      "0": {"type": "vocab", "q": "מה הפירוש של Dog?", "a": "כלב", "options": ["כלב", "חתול", "עכבר"]},
+      "1": {"type": "spelling", "q": "סדר את האותיות: G-D-O", "a": "DOG"},
+      "2": {"type": "grammar", "q": "I ____ a boy.", "a": "am", "options": ["am", "is", "are"]},
+      "3": {"type": "reading", "q": "The cat is on the mat. Where is the cat?", "a": "On the mat"},
+      "4": {"type": "video", "q": "איזה צבע מופיע בסרטון?", "a": "Blue", "options": ["Blue", "Red", "Green"]},
+      "5": {"type": "tf", "q": "The sun is cold.", "a": "False"},
+      "6": {"type": "game", "q": "בחר את התמונה של תפוח", "a": "Apple"},
+      "7": {"type": "boss", "q": "מה זה 'כישרון' באנגלית?", "a": "Talent", "options": ["Talent", "Table", "Chair"]}
+    }
+  },
+  "10-12": {
+    "1": {
+      "0": {"type": "vocab", "q": "Translate: Environment", "a": "סביבה", "options": ["סביבה", "טבע", "עיר"]},
+      "1": {"type": "spelling", "q": "Scramble: N-R-E-V-I-O-M-N-T", "a": "ENVIRONMENT"},
+      "2": {"type": "grammar", "q": "If I ___ you, I would go.", "a": "were", "options": ["was", "were", "am"]},
+      "3": {"type": "reading", "q": "Read the paragraph... What is the main idea?", "a": "Pollution"},
+      "4": {"type": "video", "q": "What is the speaker's tone?", "a": "Formal"},
+      "5": {"type": "tf", "q": "Paris is in Italy.", "a": "False"},
+      "6": {"type": "game", "q": "Find the synonym of 'Happy'", "a": "Joyful"},
+      "7": {"type": "boss", "q": "Spell 'Sophisticated'", "a": "Sophisticated"}
+    }
+  }
+}
