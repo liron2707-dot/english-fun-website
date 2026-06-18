@@ -1,12 +1,11 @@
 import streamlit as st
 import json
 import os
+import random
 
-# --- קבועים וקונפיגורציה ---
+# --- הגדרות מסד נתונים ---
 DB_FILE = "users_db.json"
-st.set_page_config(page_title="SmartEnglish Academy", layout="wide")
 
-# --- פונקציות מסד נתונים ---
 def load_db():
     if not os.path.exists(DB_FILE): return {}
     with open(DB_FILE, "r") as f:
@@ -16,78 +15,116 @@ def load_db():
 def save_db(db):
     with open(DB_FILE, "w") as f: json.dump(db, f, indent=4)
 
-# --- ניהול משתמשים (Auth) ---
-def login_or_register():
-    st.title("🎓 ברוכים הבאים לאקדמיית האנגלית")
+def delete_user(username):
+    db = load_db()
+    if username in db:
+        del db[username]
+        save_db(db)
+        return True
+    return False
+
+# --- מנוע תוכן (Content Generator) ---
+def get_mission(age, level, sub_level):
+    # הגדרת רמת קושי
+    if age <= 9: group = "7-9"
+    elif age <= 12: group = "10-12"
+    else: group = "13-15"
+
+    # בנק משימות לכל קבוצת גיל (כאן אתה מוסיף תוכן)
+    content_map = {
+        "7-9": {
+            "vocab": {"q": "תרגם: Dog", "a": "כלב"},
+            "grammar": {"q": "He ____ (eat) an apple.", "a": "eats"}
+        },
+        "10-12": {
+            "vocab": {"q": "תרגם: Environment", "a": "סביבה"},
+            "grammar": {"q": "I ____ (go) to the park yesterday.", "a": "went"}
+        },
+        "13-15": {
+            "vocab": {"q": "תרגם: Sophisticated", "a": "מתוחכם"},
+            "grammar": {"q": "If I ____ (be) you, I would go.", "a": "were"}
+        }
+    }
+    
+    # תיאורי המשימות
+    mission_types = [
+        "אוצר מילים", "איות", "דקדוק", "קריאה", 
+        "הבנת הנשמע", "נכון/לא נכון", "משחק זיכרון", "קרב בוס!"
+    ]
+    
+    return {
+        "title": mission_types[sub_level],
+        "content": content_map[group].get(list(content_map[group].keys())[sub_level % 2], {"q": "משימה כללית", "a": "כן"})
+    }
+
+# --- ממשק משתמש ---
+st.set_page_config(page_title="Nexus Academy", layout="wide")
+
+if "user" not in st.session_state: st.session_state.user = None
+
+# כניסה/הרשמה
+if st.session_state.user is None:
+    st.title("🎓 Nexus Academy")
     db = load_db()
     
-    # בחירת פעולה
-    action = st.radio("מה תרצה לעשות?", ["אני כבר רשום (כניסה)", "אני חדש כאן (הרשמה)"])
+    tab1, tab2 = st.tabs(["כניסה", "הרשמה"])
     
-    if action == "אני כבר רשום (כניסה)":
-        if not db:
-            st.warning("אין עדיין משתמשים במערכת. הירשם כמשתמש חדש.")
-        else:
-            username = st.selectbox("בחר את השם שלך:", list(db.keys()))
-            if st.button("התחבר למשחק"):
-                st.session_state.user = db[username]
-                st.rerun()
-                
-    else: # הרשמה
-        with st.form("register_form"):
-            name = st.text_input("שם מלא:")
-            age = st.number_input("גיל:", 6, 18, 9)
-            gender = st.selectbox("מגדר:", ["בן", "בת"])
+    with tab1:
+        name = st.selectbox("בחר משתמש:", list(db.keys()))
+        if st.button("כניסה"):
+            st.session_state.user = db[name]
+            st.rerun()
             
-            if st.form_submit_button("הירשם והתחל לשחק"):
-                if name in db:
-                    st.error("השם הזה כבר תפוס! בחר שם אחר.")
-                elif name.strip() == "":
-                    st.error("חובה להזין שם.")
-                else:
-                    new_user = {
-                        "name": name, "age": age, "gender": gender,
-                        "level": 1, "sub_level": 0, "rewards": []
-                    }
-                    db[name] = new_user
-                    save_db(db)
-                    st.session_state.user = new_user
-                    st.success("נרשמת בהצלחה! מעביר אותך למשחק...")
-                    st.rerun()
+    with tab2:
+        with st.form("reg"):
+            n = st.text_input("שם:")
+            a = st.number_input("גיל:", 6, 18, 9)
+            if st.form_submit_button("הירשם"):
+                db[n] = {"name": n, "age": a, "level": 1, "sub_level": 0, "rewards": []}
+                save_db(db)
+                st.session_state.user = db[n]
+                st.rerun()
+    st.stop()
 
-# --- לוגיקת המשחק הראשית ---
-def run_game():
-    user = st.session_state.user
-    st.sidebar.title(f"שלום {user['name']}! 👋")
-    st.sidebar.write(f"גיל: {user['age']} | רמה: {user['level']}")
+# --- אזור המשחק ---
+user = st.session_state.user
+db = load_db()
+
+# סרגל צד
+with st.sidebar:
+    st.header(f"שלום {user['name']} 🛡️")
+    st.write(f"רמה: {user['level']} | קבוצת גיל: {user['age']}")
+    st.progress(user['sub_level'] / 8)
     
-    if st.sidebar.button("התנתק"):
+    st.write("### 🎒 תיק פרסים:")
+    for r in user['rewards']: st.write(f"⭐ {r}")
+    
+    if st.button("❌ מחק משתמש"):
+        delete_user(user['name'])
+        st.session_state.user = None
+        st.rerun()
+    if st.button("התנתק"):
         st.session_state.user = None
         st.rerun()
 
-    # אזור התוכן המרכזי
-    st.title(f"שלב {user['level']}")
-    st.write("כאן תופיע המשימה הנוכחית...")
-    
-    # דוגמה ללוגיקת התקדמות
-    if st.button("סיימתי משימה"):
-        user['sub_level'] += 1
-        if user['sub_level'] >= 8:
-            user['level'] += 1
-            user['sub_level'] = 0
+# לוגיקת המשימות
+mission = get_mission(user['age'], user['level'], user['sub_level'])
+st.title(f"שלב {user['level']} - {mission['title']}")
+st.info(mission['content']['q'])
+
+if st.button("הגש תשובה"):
+    user['sub_level'] += 1
+    # מעבר שלב
+    if user['sub_level'] >= 8:
+        user['level'] += 1
+        user['sub_level'] = 0
+        # פרס כל 10 שלבים
+        if user['level'] % 10 == 0:
+            reward = "✨ גביע הזהב"
+            user['rewards'].append(reward)
             st.balloons()
             
-        # שמירה אוטומטית ל-DB
-        db = load_db()
-        db[user['name']] = user
-        save_db(db)
-        st.rerun()
-
-# --- נקודת התחלה ---
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-if st.session_state.user is None:
-    login_or_register()
-else:
-    run_game()
+    # שמירה ל-DB
+    db[user['name']] = user
+    save_db(db)
+    st.rerun()
