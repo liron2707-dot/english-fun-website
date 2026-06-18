@@ -2,58 +2,123 @@ import streamlit as st
 import streamlit.components.v1 as components
 import random
 
-# הגדרת עמוד בסיסית
-st.set_page_config(page_title="SmartEnglish Premium 🚀", page_icon="👑", layout="centered")
+# הגדרות עמוד - פריסה רחבה ונקייה
+st.set_page_config(page_title="SmartEnglish - אנגלית בכיף", page_icon="🎓", layout="wide")
 
-# --- ניהול זיכרון המשתמש ושמירה ב-URL (Query Params) ---
+# --- שמירת נתונים קבועה בכתובת האתר (URL) ---
 if "user_name" not in st.session_state:
     st.session_state.user_name = st.query_params.get("name", "")
 if "user_age" not in st.session_state:
-    try: st.session_state.user_age = int(st.query_params.get("age", 10))
-    except: st.session_state.user_age = 10
+    try: st.session_state.user_age = int(st.query_params.get("age", 11))
+    except: st.session_state.user_age = 11
 if "score" not in st.session_state:
     try: st.session_state.score = int(st.query_params.get("score", 0))
     except: st.session_state.score = 0
 if "level" not in st.session_state:
     try: st.session_state.level = int(st.query_params.get("level", 1))
     except: st.session_state.level = 1
-if "theme" not in st.session_state:
-    st.session_state.theme = "🚀 חלל עמוק (Deep Space)"
 if "achievements" not in st.session_state:
-    st.session_state.achievements = []
+    st.session_state.achievements = st.query_params.get_all("ach")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = True if st.session_state.user_name != "" else False
 
 def save_progress():
+    """שמירת המצב הנוכחי ב-URL כדי שהילד יוכל לחזור מאותה נקודה"""
     st.query_params["name"] = st.session_state.user_name
     st.query_params["age"] = st.session_state.user_age
     st.query_params["score"] = st.session_state.score
     st.query_params["level"] = st.session_state.level
+    # שמירת הישגים במידה ויש
+    if st.session_state.achievements:
+        st.query_params["ach"] = st.session_state.achievements
 
-def add_achievement(name, icon):
-    if name not in st.session_state.achievements:
-        st.session_state.achievements.append(name)
-        st.toast(f"🏆 הישג חדש נפתח: {icon} {name}!", icon="🎉")
+def add_score(amount):
+    st.session_state.score += amount
+    save_progress()
+    st.toast(f"🏆 כל הכבוד! זכית ב-{amount} נקודות!", icon="⭐")
 
-# --- מנוע הקראה קולית (TTS) ---
-def speak_button(text, lang="en-US", label="🔊 השמע"):
+# --- מנוע עיצוב מקיף לקריאות מקסימלית ותמיכה ב-RTL ---
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+    
+    /* רקע בהיר ונוח לעיניים */
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Heebo', sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b !important;
+    }
+    
+    /* תיבות טקסט בעברית - מימין לשמאל */
+    .rtl-container {
+        direction: rtl;
+        text-align: right;
+        padding: 10px;
+    }
+    
+    /* תיבות קוד וכרטיסיות באנגלית - משמאל לימין */
+    .ltr-card {
+        direction: ltr;
+        text-align: left;
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 16px;
+        border: 3px solid #e2e8f0;
+        border-left: 8px solid #3b82f6;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 15px;
+    }
+    
+    /* כותרות גדולות ובולטות */
+    h1, h2, h3 {
+        font-weight: 900 !important;
+        color: #1e3a8a !important;
+    }
+    
+    /* כפתורים גדולים, צבעוניים וקריאים */
+    .stButton>button {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+        color: white !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        border-radius: 12px !important;
+        padding: 12px 30px !important;
+        border: none !important;
+        box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2) !important;
+        width: 100%;
+    }
+    
+    /* כפתורי משנה (בדיקה/רמז) */
+    .hint-btn>button {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+        color: #334155 !important;
+        font-size: 16px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- מנוע הקראה קולית (TTS) מובנה בדפדפן ---
+def speak_button(text, lang="en-US", label="🔊 השמע מילה"):
     html_code = f"""
-    <button onclick="speak()" style="background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; font-family: system-ui; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; margin-bottom: 5px;">{label}</button>
+    <button onclick="speak()" style="background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{label}</button>
     <script>
     function speak() {{
         var msg = new SpeechSynthesisUtterance({repr(text)});
-        msg.lang = '{lang}'; msg.rate = 0.85; window.speechSynthesis.speak(msg);
+        msg.lang = '{lang}';
+        msg.rate = 0.8;
+        window.speechSynthesis.speak(msg);
     }}
     </script>
     """
     components.html(html_code, height=45)
 
-# --- מנוע זיהוי דיבור והגייה (Speech Recognition) ---
+# --- מנוע זיהוי דיבור (Speech Recognition) מתוקן ויציב ללא שגיאות פייתון ---
 def speech_recognition_game(target_word):
+    # התיקון ההנדסי הגדול: הביטוי מנוהל כעת לחלוטין בצד הלקוח (JS) כדי למנוע קריסה בפייתון
     html_code = f"""
-    <div style="text-align: center; font-family: system-ui; direction: ltr;">
-        <button id="rec_btn" onclick="startDictation()" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">🎤 לחץ ואמור: "{target_word}"</button>
-        <p id="result_text" style="font-size: 18px; font-weight: bold; margin-top: 15px; color: #475569;">לחץ על המיקרופון ודבר...</p>
+    <div style="text-align: center; font-family: system-ui; margin-top: 10px;">
+        <button id="rec_btn" onclick="startDictation()" style="background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%;">🎤 לחצו ואמרו באנגלית: "{target_word}"</button>
+        <p id="result_text" style="font-size: 18px; font-weight: bold; margin-top: 12px; color: #475569;">לחצו על המיקרופון ודברו אל המחשב...</p>
     </div>
     <script>
     function startDictation() {{
@@ -65,133 +130,137 @@ def speech_recognition_game(target_word):
             
             var btn = document.getElementById('rec_btn');
             btn.style.background = "#22c55e";
-            btn.innerText = "🎧 מקשיב לך...";
+            btn.innerText = "🎧 האתר מקשיב לך עכשיו...";
             
             recognition.start();
             
             recognition.onresult = function(e) {{
                 recognition.stop();
                 var user_said = e.results[0][0].transcript.toLowerCase().trim();
-                var target = "{target_word.lower().trim()}";
+                var target = "{target_word}".toLowerCase().trim();
                 var res_p = document.getElementById('result_text');
                 
-                btn.style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
-                btn.innerText = '🎤 נסה שוב';
+                btn.style.background = "#ef4444";
+                btn.innerText = '🎤 נסו שוב';
                 
                 if(user_said.includes(target) || target.includes(user_said)) {{
-                    res_p.innerHTML = "🟢 <span style='color:green;'>מדהים! הגייה מושלמת! ("+user_said+")</span>";
+                    res_p.innerHTML = "🍏 <span style='color:green; font-size:20px;'>מדהים! אמרתם מעולה! ("+user_said+")</span>";
                 }} else {{
-                    res_p.innerHTML = "🔴 <span style='color:red;'>שמעתי: \\""+user_said+"\\". נסה שוב במבטא ברור יותר!</span>";
+                    res_p.innerHTML = "🍎 <span style='color:red;'>האתר שמע: \\""+user_said+"\\". נסו להגיד שוב חזק וברור!</span>";
                 }}
             }};
             recognition.onerror = function(e) {{
                 recognition.stop();
-                document.getElementById('rec_btn').style.background = "linear-gradient(135deg, #ef4444, #dc2626)";
-                document.getElementById('rec_btn').innerText = '🎤 שגיאה, נסה שוב';
+                document.getElementById('rec_btn').style.background = "#ef4444";
+                document.getElementById('rec_btn').innerText = '🎤 שגיאה במיקרופון, נסו שוב';
             }}
         }} else {{
-            document.getElementById('result_text').innerText = "הדפדפן שלך לא תומך בזיהוי קולי. מומלץ להשתמש ב-Google Chrome.";
+            document.getElementById('result_text').innerText = "הדפדפן לא תומך במיקרופון. מומלץ להשתמש בגוגל כרום במחשב.";
         }}
     }}
     </script>
     """
     components.html(html_code, height=130)
 
-# --- בחירת ערכות נושא (Themes CSS) ---
-themes = {
-    "🚀 חלל עמוק (Deep Space)": "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-    "🍬 ממלכת הסוכריות (Candy Kingdom)": "linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)",
-    "🏆 ליגת האלופות (Champions League)": "linear-gradient(135deg, #022c22 0%, #064e3b 100%)"
-}
-bg_gradient = themes[st.session_state.theme]
-text_color = "#ffffff" if st.session_state.theme != "🍬 ממלכת הסוכריות (Candy Kingdom)" else "#1e293b"
-card_bg = "rgba(255,255,255,0.1)" if st.session_state.theme != "🍬 ממלכת הסוכריות (Candy Kingdom)" else "#ffffff"
-
-st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
-    html, body, [data-testid="stAppViewContainer"] {{
-        font-family: 'Heebo', sans-serif;
-        background: {bg_gradient};
-        color: {text_color} !important;
-    }}
-    .rtl-box {{ direction: rtl; text-align: right; }}
-    .ltr-box {{ 
-        direction: ltr; text-align: left; font-size: 20px; 
-        background-color: {card_bg}; padding: 20px; 
-        border-radius: 15px; border-left: 6px solid #3b82f6; color: {text_color};
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }}
-    h1, h2, h3, h4, span, p, label {{ color: {text_color} !important; }}
-    .stTabs [data-baseweb="tab"] {{ color: {text_color} !important; font-weight: bold; font-size: 16px; }}
-    </style>
-""", unsafe_allow_html=True)
-
-# --- מאגר מידע מקיף מובנה לכל הרמות ---
+# --- מאגר תוכן ענק ומורחב לכל השלבים (מילים, משחקים, סיפורים, מבחנים) ---
 content_db = {
     1: {
-        "title": "עולם היסודות 🌟 (גילאי 10-11)",
-        "vocab": [("Apple", "תפוח 🍎", "A-P-P-L-E"), ("Summer", "קיץ ☀️", "S-U-M-M-E-R"), ("Friend", "חבר 🤝", "F-R-I-E-N-D"), ("School", "בית ספר 🏫", "S-C-H-O-O-L")],
-        "scramble_word": "FRIEND", "scramble_hint": "מישהו שאתה אוהב לשחק איתו בהפסקה",
-        "grammar_title": "חוק ה- Am, Is, Are",
-        "grammar_text": "I ➔ Am | He/She/It ➔ Is | We/You/They ➔ Are",
-        "grammar_q": "בחר את המילה הנכונה: 'We ____ learning English right now!'",
-        "grammar_options": ["am", "is", "are"], "grammar_correct": "are",
-        "story_title": "The Happy Puppy 🐶",
-        "story_text": "Max is a small brown puppy. He lives in a big green yard. Every morning, Max runs after yellow butterflies. He is very fast, but he never catches them. At night, he sleeps next to his best friend, Leo.",
-        "unseen_q": "What color are the butterflies Max runs after?",
-        "unseen_options": ["Brown", "Green", "Yellow"], "unseen_correct": "Yellow",
+        "title": "שלב 1: אי היסודות הקסום 🌟",
+        "vocab": [
+            {"eng": "Apple", "heb": "תפוח 🍎", "hint": "פרי מתוק בצבע אדום או ירוק"},
+            {"eng": "Summer", "heb": "קיץ ☀️", "hint": "העונה החמה ביותר בשנה, הולכים לים"},
+            {"eng": "Friend", "heb": "חבר 🤝", "hint": "מישהו שאוהבים לשחק ולדבר איתו"},
+            {"eng": "School", "heb": "בית ספר 🏫", "hint": "המקום אליו הולכים בבוקר כדי ללמוד ולראות חברים"},
+            {"eng": "Family", "heb": "משפחה 👨‍👩‍👧‍👦", "hint": "אבא, אמא, אחים ואחיות שאוהבים אותנו"},
+            {"eng": "Water", "heb": "מים 💧", "hint": "מה שאנחנו שותים כשחם לנו"}
+        ],
+        "scramble_word": "SCHOOL",
+        "scramble_hint": "המקום שבו לומדים ופוגשים את המורה והחברים",
+        "grammar_title": "מתי נשתמש ב- Am, Is, Are?",
+        "grammar_desc": "• I תמיד מקבל Am (למשל: I am a student)\n• He, She, It (יחיד) מקבלים Is (למשל: He is smart)\n• We, You, They (רבים) מקבלים Are (למשל: They are playing)",
+        "grammar_q": "השלם את המשפט: 'The cat ____ sleeping on the sofa.'",
+        "grammar_options": ["am", "is", "are"],
+        "grammar_correct": "is",
+        "story_title": "The Magic Red Ball ⚽",
+        "story_text": "Ben has a magical red ball. Every afternoon, he takes the ball to the green park. The ball can bounce very high, straight into the white clouds! One day, the ball did not come down. It stayed in the sky and became a beautiful new star.",
+        "unseen_q": "Where does Ben take his ball every afternoon?",
+        "unseen_options": ["To the school", "To the park", "To his bedroom"],
+        "unseen_correct": "To the park",
         "video_id": "8wXG7IAnHdQ",
-        "exam_q": "איך אומרים 'קיץ' באנגלית?",
-        "exam_options": ["Winter", "Summer", "Spring"], "exam_correct": "Summer"
+        "exam_q": "איך כותבים באנגלית את המילה 'משפחה'?",
+        "exam_options": ["Friend", "Family", "Summer"],
+        "exam_correct": "Family"
     },
     2: {
-        "title": "יער ההרפתקאות 🗺️ (גילאי 12-13)",
-        "vocab": [("Adventure", "הרפתקה 🗺️", "A-D-V-E-N-T-U-R-E"), ("Challenge", "אתגר 🎯", "C-H-A-L-L-E-N-G-E"), ("Discover", "לגלות 🔍", "D-I-S-C-O-V-E-R"), ("Protect", "להגן 🛡️", "P-R-O-T-E-C-T")],
-        "scramble_word": "DISCOVER", "scramble_hint": "למצוא משהו חדש שלא הכרנו קודם",
-        "grammar_title": "חוק ה- Past Simple (עבר פשוט)",
-        "grammar_text": "לפעלים רגילים נוסיף ed בסוף (Walk ➔ Walked). לפעלים מיוחדים הצורה משתנה (Go ➔ Went).",
-        "grammar_q": "בחר את הצורה הנכונה לעבר: 'Yesterday, I ____ a beautiful movie.'",
-        "grammar_options": ["watch", "watched", "watching"], "grammar_correct": "watched",
-        "story_title": "The Secret Map 🗺️",
-        "story_text": "Oliver found an old, dusty book in his grandfather's attic. When he opened it, a secret map dropped onto the floor. The map showed a path leading to a hidden treasure near the blue river. Oliver decided to start his journey tomorrow.",
-        "unseen_q": "Where did Oliver find the old book?",
-        "unseen_options": ["In the school library", "In his grandfather's attic", "Near the blue river"], "unseen_correct": "In his grandfather's attic",
+        "title": "שלב 2: יער המשפטים וההרפתקאות 🗺️",
+        "vocab": [
+            {"eng": "Adventure", "heb": "הרפתקה 🗺️", "hint": "מסע מעניין ומותח למקום חדש"},
+            {"eng": "Challenge", "heb": "אתגר 🎯", "hint": "משימה קשה אבל מעניינת שכיף להצליח בה"},
+            {"eng": "Discover", "heb": "לגלות 🔍", "hint": "למצוא משהו חדש שלא ידענו עליו קודם"},
+            {"eng": "Protect", "heb": "להגן 🛡️", "hint": "לשמור על מישהו או משהו מפני סכנה"},
+            {"eng": "Celebration", "heb": "חגיגה 🎉", "hint": "מסיבה גדולה ושמחה עם מוזיקה ואוכל"},
+            {"eng": "Beautiful", "heb": "יפה ✨", "hint": "משהו שממש נעים להסתכל עליו"}
+        ],
+        "scramble_word": "ADVENTURE",
+        "scramble_hint": "מסע מרתק ומלא הפתעות",
+        "grammar_title": "העבר הפשוט - Past Simple",
+        "grammar_desc": "משתמשים בעבר לפעולות שהסתיימו אתמול או בעבר.\n• לפעלים רגילים נוסיף ed בסוף: Walk -> Walked\n• לפעלים יוצאי דופן הצורה משתנה: Go -> Went, Eat -> Ate",
+        "grammar_q": "מהי צורת העבר הנכונה של הפועל 'Go'?",
+        "grammar_options": ["Goed", "Went", "Going"],
+        "grammar_correct": "Went",
+        "story_title": "The Treehouse Mystery 🌳",
+        "story_text": "Maya and Leo decided to build a beautiful treehouse in their big backyard. They spent three days collecting wood and tools. On the fourth day, they discovered a small wooden box hidden inside the tree. Inside the box, there was an old golden key.",
+        "unseen_q": "What did Maya and Leo find inside the tree?",
+        "unseen_options": ["A lost hammer", "A small wooden box with a key", "A green bird"],
+        "unseen_correct": "A small wooden box with a key",
         "video_id": "maM9gNfskS4",
-        "exam_q": "מה הפירוש של Challenge?",
-        "exam_options": ["הרפתקה", "אתגר", "פתרון"], "exam_correct": "אתגר"
+        "exam_q": "איך אומרים 'לגלות' באנגלית?",
+        "exam_options": ["Protect", "Discover", "Challenge"],
+        "exam_correct": "Discover"
     },
     3: {
-        "title": "מצודת המאסטרים 👑 (גילאי 14-15)",
-        "vocab": [("Accomplish", "להשיג/להשלים 🏆", "A-C-C-O-M-P-L-I-S-H"), ("Independent", "עצמאי 🗽", "I-N-D-E-P-E-N-D-E-N-T"), ("Generous", "נדיב 🤝", "G-E-N-E-R-O-U-S"), ("Influence", "להשפעה 🌊", "I-N-F-L-U-E-N-C-E")],
-        "scramble_word": "GENEROUS", "scramble_hint": "אדם שאוהב לתת ולתרום לאחרים",
-        "grammar_title": "חוק ה- Present Perfect (הווה מושלם)",
-        "grammar_text": "מבנה: Have/Has + פועל בצורה שלישית (V3). משמש לפעולה מהעבר שרלוונטית לעכשיו.",
-        "grammar_q": "השלם את המשפט: 'They ____ already finished their project.'",
-        "grammar_options": ["has", "have", "are"], "grammar_correct": "have",
-        "story_title": "The Quantum Computer 💻",
-        "story_text": "Dr. Sophia has successfully developed the world's first independent quantum computer. This incredible machine can solve global problems in seconds. Sophia believes her creation will have a positive influence on science and help accomplish a cleaner planet.",
-        "unseen_q": "What kind of computer did Dr. Sophia develop?",
-        "unseen_options": ["A gaming computer", "A quantum computer", "A social network"], "unseen_correct": "A quantum computer",
+        "title": "שלב 3: מצודת המאסטרים הגבוהה 👑",
+        "vocab": [
+            {"eng": "Accomplish", "heb": "להשיג/להשלים 🏆", "hint": "להצליח לסיים משימה גדולה או מטרה"},
+            {"eng": "Independent", "heb": "עצמאי 🗽", "hint": "מישהו שעושה דברים לבד בלי צורך בעזרה"},
+            {"eng": "Generous", "heb": "נדיב 🤝", "hint": "אדם שאוהב לתת, לעזור ולתרום לאחרים"},
+            {"eng": "Influence", "heb": "השפעה 🌊", "hint": "היכולת לשנות או לגרום למישהו לפעול בדרך מסוימת"},
+            {"eng": "Consequence", "heb": "תוצאה/השלכה ⏳", "hint": "מה שקורה בגלל מעשה שעשינו"},
+            {"eng": "Environment", "heb": "סביבה 🌱", "hint": "הטבע, העולם והעצים שמסביבנו"}
+        ],
+        "scramble_word": "INDEPENDENT",
+        "scramble_hint": "מישהו שלא תלוי באחרים ועושה דברים בכוחות עצמו",
+        "grammar_title": "ההווה המושלם - Present Perfect",
+        "grammar_desc": "משתמשים למעשים שקרו בעבר ומשפיעים על ההווה, ללא זמן מדויק.\nמבנה: Have / Has + הפועל בצורה השלישית (V3).\nדוגמה: I have lived here for five years.",
+        "grammar_q": "בחר את המשפט התקני והנכון ביותר באנגלית:",
+        "grammar_options": ["She has gone to London.", "She have gone to London.", "She has went to London."],
+        "grammar_correct": "She has gone to London.",
+        "story_title": "The Journey to Mars 🚀",
+        "story_text": "In the year 2046, Captain Sarah boarded the advanced Ares-5 spacecraft. Her lifelong dream was to accomplish what no human had ever done before: walking on Mars. After an independent journey of seven long months through dark space, the red planet finally appeared in the circular window.",
+        "unseen_q": "How long did the journey to Mars take?",
+        "unseen_options": ["Three weeks", "Seven months", "One year"],
+        "unseen_correct": "Seven months",
         "video_id": "d5U7g_sZ09g",
-        "exam_q": "איזו מילה פירושה 'עצמאי'?",
-        "exam_options": ["Independent", "Influence", "Accomplish"], "exam_correct": "Independent"
+        "exam_q": "איזו מילה פירושה 'נדיב'?",
+        "exam_options": ["Generous", "Independent", "Influence"],
+        "exam_correct": "Generous"
     }
 }
 
-# --- מסך הרשמה וכניסה ---
+# --- מסך כניסה / הרשמה ---
 if not st.session_state.logged_in:
-    st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-    st.title("🥇 SmartEnglish Premium Edition")
-    st.subheader("ברוכים הבאים לפלטפורמת המשחקים המתקדמת ביותר ללימוד אנגלית!")
+    st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+    st.title("🥇 פלטפורמת SmartEnglish Premium")
+    st.subheader("ברוכים הבאים! אתר משחקי האנגלית הגדול והמתקדם ביותר.")
     
     with st.container(border=True):
-        name_input = st.text_input("📝 מה השם שלך גיבור/ה?", placeholder="הקלד שם פה...")
-        age_input = st.slider("🎂 גיל (להתאמת רמת המשחקים)", 10, 15, 11)
+        st.markdown("### 📝 כניסה מהירה לתלמיד:")
+        name_input = st.text_input("מה השם שלך גיבור/ה?", placeholder="הקלידו שם כאן...")
+        age_input = st.slider("בן/בת כמה את/ה? (כדי שנתאים לך את המשחקים)", 10, 15, 11)
         
         if st.button("🚀 כניסה לעולם המשחקים!", use_container_width=True):
             if name_input.strip() == "":
-                st.error("חובה לכתוב שם כדי שנוכל לשמור את הגביעים והניקוד שלך!")
+                st.error("חובה להקליד שם כדי שנוכל לשמור את כל הנקודות והשלבים שלך!")
             else:
                 st.session_state.user_name = name_input
                 st.session_state.user_age = age_input
@@ -204,167 +273,200 @@ if not st.session_state.logged_in:
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- האפליקציה הראשית ---
+# --- האפליקציה המרכזית (אחרי התחברות) ---
 else:
     current_data = content_db[st.session_state.level]
     
-    # סרגל כלים עליון ומחליף עיצובים
-    st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-    col_user, col_scr, col_lvl, col_th = st.columns([2, 1.5, 1.5, 2])
-    with col_user: st.markdown(f"👤 **שחקן:** {st.session_state.user_name}")
-    with col_scr: st.markdown(f"⭐ **ניקוד:** `{st.session_state.score}`")
-    with col_lvl: st.markdown(f"👑 **רמה:** `{st.session_state.level}`")
-    with col_th:
-        st.session_state.theme = st.selectbox("🎨 עיצוב האתר", list(themes.keys()), index=list(themes.keys()).index(st.session_state.theme))
-        
+    # הצגת הודעה מיוחדת במידה והיוזר נטען אוטומטית מקישור שמור
+    if st.query_params.get("name") and "welcome_shown" not in st.session_state:
+        st.toast(f"👋 ברוך הבא חזרה, {st.session_state.user_name}! כל ההתקדמות שלך נשמרה!", icon="💾")
+        st.session_state.welcome_shown = True
+
+    # --- סרגל כלים עליון (Dashboard) סופר מעוצב וקריא ---
+    st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+    c_user, c_scr, c_lvl, c_out = st.columns([3, 2, 2, 2])
+    with c_user:
+        st.markdown(f"👤 **שחקן פעיל:** <span style='font-size:22px; color:#2563eb;'><b>{st.session_state.user_name}</b></span>", unsafe_allow_html=True)
+    with c_scr:
+        st.markdown(f"⭐ **מדליות ונקודות:** <span style='font-size:22px; color:#16a34a;'><b>{st.session_state.score}</b></span>", unsafe_allow_html=True)
+    with c_lvl:
+        st.markdown(f"👑 **דרגה נוכחית:** <span style='font-size:22px; color:#b45309;'><b>שלב {st.session_state.level}</b></span>", unsafe_allow_html=True)
+    with c_out:
+        if st.button("יציאה והחלפת משתמש ↩️"):
+            st.session_state.logged_in = False
+            st.query_params.clear()
+            st.rerun()
+            
+    # מד התקדמות ויזואלי לעליית שלב
+    progress_val = min((st.session_state.score % 100) / 100.0, 1.0)
+    st.progress(progress_val, text=f"התקדמות לעליית שלב הבא ({int(progress_val*100)}%)")
+    st.markdown(f"💡 *טיפ: כדי לעלות שלב באופן אוטומטי צבור 100 נקודות או עבור בהצלחה את 'מבחן השלב' בלשונית האחרונה!*")
     st.write("---")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # לשוניות האתר המרכזיות
-    tab_vocab, tab_games, tab_grammar, tab_unseen, tab_video, tab_exam = st.tabs([
-        "🃏 כרטיסיות מילים", "🧩 משחק אותיות", "🎯 אתגר הדקדוק", "📖 סיפור מקריא", "🎬 וידאו", "🏁 מבחן שלב"
+    # בדיקת עליית שלב אוטומטית לפי ניקוד
+    if st.session_state.score >= 100 and st.session_state.level == 1:
+        st.session_state.level = 2
+        st.balloons()
+        st.success("💥 וואו! הגעת ל-100 נקודות ועלית אוטומטית לשלב 2!")
+        save_progress()
+    elif st.session_state.score >= 200 and st.session_state.level == 2:
+        st.session_state.level = 3
+        st.balloons()
+        st.success("💥 מדהים! הגעת ל-200 נקודות ועלית אוטומטית לשלב 3 - שלב המאסטרים!")
+        save_progress()
+
+    # כותרת השלב
+    st.markdown(f'<div class="rtl-container"><h2 style="text-align:center; color:#1e3a8a;">{current_data["title"]}</h2></div>', unsafe_allow_html=True)
+
+    # --- טאבים (לשוניות) למשחקים ולמידה ---
+    t_vocab, t_scramble, t_grammar, t_story, t_video, t_exam = st.tabs([
+        "🃏 כרטיסיות מילים מדברות", 
+        "🧩 משחק סדר האותיות", 
+        "🎯 אתגר הדקדוק וההגייה", 
+        "📖 סיפורים ואנסין קולי", 
+        "🎬 סרטוני הסבר", 
+        "🏁 מבחן עליית שלב"
     ])
 
-    # 1. כרטיסיות מילים אינטראקטיביות
-    with tab_vocab:
-        st.markdown('<div class="rtl-box"><h3>💡 מילון הכרטיסיות המדבר</h3><p>לחצו על הרמקול כדי לשמוע, ופתחו את הכרטיסייה כדי לראות את התרגום!</p></div>', unsafe_allow_html=True)
-        for eng, heb, spell in current_data["vocab"]:
+    # 1. כרטיסיות מילים מורחבות
+    with t_vocab:
+        st.markdown('<div class="rtl-container"><h3>🃏 כרטיסיות מילים אינטראקטיביות</h3><p>לחצו על כפתור השמע כדי לשמוע את המילה, ופתחו את התיבה כדי לראות את התרגום והרמז!</p></div>', unsafe_allow_html=True)
+        
+        for item in current_data["vocab"]:
             with st.container(border=True):
-                c_e, c_sp, c_h = st.columns([2, 1, 2])
-                with c_e:
-                    st.markdown(f"<h3 style='margin:0;'>{eng}</h3>", unsafe_allow_html=True)
-                    st.caption(f"איוש: {spell}")
-                with c_sp:
-                    speak_button(eng, label="📢")
-                with c_h:
-                    with st.expander("👁️ לחץ לחשיפת התרגום"):
-                        st.markdown(f"<h4 style='text-align:right; margin:0;'>{heb}</h4>", unsafe_allow_html=True)
-                        speak_button(heb, lang="he-IL", label="🔊 עברית")
+                col_e, col_sp, col_h = st.columns([3, 2, 4])
+                with col_e:
+                    st.markdown(f"<div class='ltr-card' style='margin:0; padding:10px;'><b style='font-size:24px; color:#1e293b;'>{item['eng']}</b></div>", unsafe_allow_html=True)
+                with col_sp:
+                    speak_button(item['eng'], label="📢 Listen (אנגלית)")
+                with col_h:
+                    with st.expander("👁️ לחצו לחשיפת פירוש בעברית ורמז"):
+                        st.markdown(f"<div class='rtl-container'><b>פירוש:</b> {item['heb']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='rtl-container'>💡 {item['hint']}</div>", unsafe_allow_html=True)
+                        speak_button(item['heb'], lang="he-IL", label="🔊 השמע בעברית")
 
-    # 2. משחק חילוץ אותיות (Word Scramble)
-    with tab_games:
-        st.markdown('<div class="rtl-box"><h3>🧩 משחק מרוץ האותיות (Word Scramble)</h3>', unsafe_allow_html=True)
-        word_to_scramble = current_data["scramble_word"]
+    # 2. משחק אותיות מבולבלות (Word Scramble)
+    with t_scramble:
+        st.markdown('<div class="rtl-container"><h3>🧩 משחק חילוץ אותיות ומרוץ זיכרון</h3>', unsafe_allow_html=True)
+        target_w = current_data["scramble_word"]
         
-        # בלגון האותיות
-        if f"scrambled_{st.session_state.level}" not in st.session_state:
-            letter_list = list(word_to_scramble)
-            random.shuffle(letter_list)
-            st.session_state[f"scrambled_{st.session_state.level}"] = "".join(letter_list)
+        # ערבוב אותיות קבוע לכל שלב כדי שלא ישתנה בכל קליק
+        if f"scrambled_letters_{st.session_state.level}" not in st.session_state:
+            l_list = list(target_w)
+            random.shuffle(l_list)
+            st.session_state[f"scrambled_letters_{st.session_state.level}"] = "".join(l_list)
             
-        st.markdown(f"#### סדר את האותיות הבאות כדי ליצור מילה תקינה:")
-        st.markdown(f"<div class='ltr-box' style='text-align:center; font-size:32px; letter-spacing: 10px; font-weight:bold; color:#f97316;'>{st.session_state[f'scrambled_{st.session_state.level}']}</div>", unsafe_allow_html=True)
-        st.markdown(f"💡 **רמז בעברית:** {current_data['scramble_hint']}")
+        st.markdown("#### סדרו את האותיות המבולבלות כדי להרכיב מילה נכונה:")
+        st.markdown(f"<div class='ltr-card' style='text-align:center; font-size:36px; letter-spacing:8px; font-weight:bold; color:#d97706;'>{st.session_state[f'scrambled_letters_{st.session_state.level}']}</div>", unsafe_allow_html=True)
         
-        user_guess = st.text_input("✍️ הקלד את המילה המסודרת שלך באנגלית:", key="scramble_guess").upper().strip()
-        if st.button("🎮 בדוק את המילה שלי"):
-            if user_guess == word_to_scramble:
+        # שימוש במערכת רמזים מובנית
+        with st.expander("🔍 צריך רמז למשחק? לחצו כאן"):
+            st.markdown(f"<div class='rtl-container'>💡 <b>רמז:</b> {current_data['scramble_hint']}</div>", unsafe_allow_html=True)
+            
+        u_guess = st.text_input("✍️ הקלידו את המילה שלכם באותיות גדולות (English):", key="scr_input").upper().strip()
+        
+        if st.button("🎮 בדקו אם צדקתי במשחק האותיות"):
+            if u_guess == target_w:
                 st.balloons()
-                st.success("🏆 מדהים! פיצחת את המילה! זכית ב-25 נקודות!")
-                st.session_state.score += 25
-                add_achievement("מאסטר פאזלים", "🧩")
-                save_progress()
+                st.success("🎉 מדהים!!! הצלחתם לפצח את המילה המבולבלת!")
+                add_score(25)
             else:
-                st.error("❌ אופס, האותיות לא בסדר הנכון. נסה שוב!")
+                st.error("❌ אופס, האותיות עדיין לא בסדר הנכון. נסו שוב או היעזרו ברמז למעלה!")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 3. אתגר הדקדוק ומעבדת הדיבור
-    with tab_grammar:
-        st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-        st.markdown(f"### 🎯 חוק דקדוק: {current_data['grammar_title']}")
-        st.info(current_data['grammar_text'])
+    # 3. אתגר דקדוק ומעבדת דיבור מתוקנת
+    with t_grammar:
+        st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+        st.markdown(f"### 🎯 חוק חובה: {current_data['grammar_title']}")
+        st.info(current_data['grammar_desc'])
+        st.write("---")
         
-        st.markdown("#### ❓ בחן את עצמך:")
-        g_ans = st.radio(current_data['grammar_q'], current_data['grammar_options'])
-        if st.button("בצע בדיקת דקדוק"):
-            if g_ans == current_data['grammar_correct']:
+        st.markdown("#### 🎲 משימת הדקדוק שלכם:")
+        g_choice = st.radio(current_data['grammar_q'], current_data['grammar_options'])
+        
+        if st.button("📝 בדקו את תשובת הדקדוק שלי"):
+            if g_choice == current_data['grammar_correct']:
                 st.balloons()
-                st.success("כל הכבוד! תשובה נכונה. +15 נקודות!")
-                st.session_state.score += 15
-                save_progress()
+                st.success("🤩 נכון מאוד! אתם מבינים את חוקי האנגלית מעולה!")
+                add_score(20)
             else:
-                st.error("התשובה לא נכונה, קרא את הכלל הכחול למעלה שוב!")
+                st.error("😢 לא מדויק. קראו את חוק הדקדוק בתיבה הכחולה למעלה ונסו שוב!")
                 
         st.write("---")
-        st.markdown("### 🎤 מעבדת הגייה חיווה עם בינה מלאכותית")
-        st.markdown("לחצו על המיקרופון, ואמרו את המילה הבאה בקול רם כדי לבדוק אם המחשב מבין אתכם:")
-        speech_recognition_game(current_data["vocab"][0][0])
+        st.markdown("### 🎤 מעבדת הגייה אינטראקטיבית עם המחשב")
+        st.markdown("בואו נבדוק את המבטא שלכם! לחצו על המיקרופון ואמרו את המילה הבאה בקול רם:")
+        speech_recognition_game(current_data["vocab"][0]["eng"])
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 4. סיפור מקריא ואנסין אינטראקטיבי
-    with tab_unseen:
-        st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-        st.markdown(f"### 📖 סיפור השלב: {current_data['story_title']}")
-        st.write("לחצו כדי שהאתר יקריא לכם את כל הסיפור בקול רם:")
-        speak_button(current_data['story_text'], label="🔊 הפעל הקראת סיפור מלאה (Play Audio Story)")
+    # 4. סיפור מקריא ואנסין
+    with t_unseen:
+        st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+        st.markdown(f"### 📖 הסיפור האינטראקטיבי: {current_data['story_title']}")
+        st.markdown("רוצים שהאתר יקריא לכם את כל הסיפור במבטא מושלם וברור? לחצו על הכפתור:")
+        speak_button(current_data['story_text'], label="🔊 הפעל הקראת סיפור מלאה באנגלית")
         st.markdown('</div>', unsafe_allow_html=True)
         
-        st.markdown(f'<div class="ltr-box">{current_data["story_text"]}</div>', unsafe_allow_html=True)
+        # הצגת האנסין משמאל לימין בצורה נקייה וגדולה
+        st.markdown(f'<div class="ltr-card" style="font-size:22px; line-height:1.8; color:#0f172a;">{current_data["story_text"]}</div>', unsafe_allow_html=True)
         
-        st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-        st.markdown("#### 🧠 משימת הבנת הנקרא:")
-        u_ans = st.radio(current_data['unseen_q'], current_data['unseen_options'])
-        if st.button("שלח תשובת אנסין"):
-            if u_ans == current_data['unseen_correct']:
+        st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+        st.markdown("#### 🧠 מבחן הבנת הנקרא על הסיפור (Unseen):")
+        u_choice = st.radio(current_data['unseen_q'], current_data['unseen_options'])
+        
+        if st.button("🔍 בדקו את תשובת הסיפור שלי"):
+            if u_choice == current_data['unseen_correct']:
                 st.snow()
-                st.success("מצוין! הבנתם את הסיפור בצורה מושלמת. +20 נקודות!")
-                st.session_state.score += 20
-                add_achievement("חוקר סיפורים", "📖")
-                save_progress()
+                st.success("🎉 כל הכבוד! עניתם נכון על שאלת הבנת הנקרא!")
+                add_score(20)
             else:
-                st.error("❌ לא מדויק, כדאי להאזין לסיפור שוב פעם.")
+                st.error("❌ התשובה לא נכונה. הקשיבו לסיפור פעם נוספת ונסו שוב!")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # 5. סרטוני יוטיוב
-    with tab_video:
-        st.markdown('<div class="rtl-box"><h3>🎬 מרכז הווידאו המוזיקלי</h3><p>צפו בסרטון והפעילו כתוביות כדי לשפר את השמיעה שלכם באנגלית!</p></div>', unsafe_allow_html=True)
+    # 5. וידאו
+    with t_video:
+        st.markdown('<div class="rtl-container"><h3>🎬 מרכז הווידאו הלימודי</h3><p>צפו בסרטון החינוכי כדי ללמוד ולתרגל אנגלית בכיף. מומלץ להפעיל כתוביות (CC) בנגן!</p></div>', unsafe_allow_html=True)
         st.video(f"https://www.youtube.com/watch?v={current_data['video_id']}")
 
-    # 6. מבחן עליית שלב ותעודה
-    with tab_exam:
-        st.markdown('<div class="rtl-box">', unsafe_allow_html=True)
-        st.markdown("### 🏁 המבחן המסכם לעליית שלב")
-        st.write("ענו נכון כדי לפתוח את השלב הבא או לסיים את המשחק בהצטיינות!")
+    # 6. מבחן עליית שלב ותעודה סופית
+    with t_exam:
+        st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
+        st.markdown("### 🏁 המבחן הגדול לעליית שלב!")
+        st.write("ענו נכון על השאלה המסכמת כדי לעלות מיד לשלב הבא במשחק ולקבל פרס גדול!")
         
-        e_ans = st.radio(current_data['exam_q'], current_data['exam_options'])
-        if st.button("🏆 הגש מבחן סופי"):
-            if e_ans == current_data['exam_correct']:
+        e_choice = st.radio(current_data['exam_q'], current_data['exam_options'])
+        
+        if st.button("🏆 הגש מבחן סיום שלב רשמי"):
+            if e_choice == current_data['exam_correct']:
                 st.balloons()
                 st.snow()
-                st.session_state.score += 50
+                add_score(50)
                 
                 if st.session_state.level < 3:
                     st.session_state.level += 1
-                    st.success(f"💥 מזל טוב!!! עליתם לרמה {st.session_state.level}! שלבים חדשים נפתחו עבורכם!")
+                    st.success(f"🥳 יששש! עברתם את המבחן! ברוכים הבאים לשלב {st.session_state.level} החדש!")
                 else:
-                    add_achievement("מאסטר אנגלית מוחלט", "👑")
-                    st.success("👑 מדהים!!! השלמתם את כל השלבים באתר!")
+                    if "מאסטר אנגלית" not in st.session_state.achievements:
+                        st.session_state.achievements.append("מאסטר אנגלית")
+                    st.success("👑 מדהים!!! סיימתם את כל הרמות באתר והפכתם למאסטרים רשמיים באנגלית!")
                 save_progress()
                 st.rerun()
             else:
-                st.error("❌ אווץ', טעות במבחן. חזרו על המילים והכרטיסיות ונסו שנית!")
-        
-        # תצוגת הישגים וגביעים
-        if st.session_state.achievements:
-            st.write("---")
-            st.markdown("### 🏆 חדר הגביעים שלך:")
-            cols = st.columns(len(st.session_state.achievements))
-            for i, ach in enumerate(st.session_state.achievements):
-                cols[i].button(f"🏅 {ach}", disabled=True, key=f"ach_{i}")
+                st.error("😭 תשובה לא נכונה במבחן. עברו שוב על לשונית המילים והסיפורים ונסו שוב!")
                 
-        # הפקת תעודה בסיום רמה 3
-        if st.session_state.level == 3 and "מאסטר אנגלית מוחלט" in st.session_state.achievements:
+        # הפקת תעודת הצטיינות חגיגית למי שמסיים את שלב 3
+        if st.session_state.level == 3 and "מאסטר אנגלית" in st.session_state.achievements:
             st.write("---")
-            st.markdown("### 📜 תעודת ההצטיינות הרשמית שלך!")
-            cert_html = f"""
-            <div style="border: 10px double #gold; background-color: #f8fafc; padding: 30px; text-align: center; font-family: 'Heebo', sans-serif; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); direction: rtl;">
-                <h1 style="color: #1e3a8a; margin: 0;">📜 תעודת מאסטר באנגלית 📜</h1>
+            st.markdown("### 📜 תעודת ההצטיינות האישית שלך המוכנה להדפסה!")
+            cert_code = f"""
+            <div style="border: 10px double #gold; background-color: #ffffff; padding: 30px; text-align: center; font-family: 'Heebo', sans-serif; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); direction: rtl; color:#1e293b;">
+                <h1 style="color: #1e3a8a; margin: 0;">📜 תעודת הצטיינות באנגלית 📜</h1>
                 <p style="font-size: 20px; color: #475569; margin-top: 15px;">כל הכבוד לתלמיד/ה המצטיין/ת</p>
-                <h2 style="color: #b45309; font-size: 32px; margin: 10px 0;">{st.session_state.user_name}</h2>
-                <p style="font-size: 18px; color: #475569;">אשר סיים/ה בהצלחה את כל הרמות, המשחקים ואתגרי הדיבור באתר <b>SmartEnglish</b>!</p>
-                <p style="font-size: 24px; font-weight: bold; color: #16a34a;">ניקוד סופי מנצח: {st.session_state.score} נקודות! 🏆</p>
+                <h2 style="color: #b45309; font-size: 34px; margin: 10px 0;">{st.session_state.user_name}</h2>
+                <p style="font-size: 18px; color: #475569;">אשר סיים/ה בהצלחה את כל השלבים, המשחקים, אתגרי ההגייה והאנסין באתר <b>SmartEnglish</b>!</p>
+                <p style="font-size: 24px; font-weight: bold; color: #16a34a;">ניקוד סופי ענק: {st.session_state.score} נקודות! 🏆</p>
             </div>
             """
-            st.components.v1.html(cert_html, height=320)
+            components.html(cert_code, height=330)
             
         st.markdown('</div>', unsafe_allow_html=True)
