@@ -6,9 +6,37 @@ import os
 DB_FILE = "users_db.json"
 CONTENT_FILE = "content.json"
 
-st.set_page_config(page_title="English Academy", layout="wide")
+st.set_page_config(page_title="SmartEnglish Academy", layout="wide")
 
-# --- פונקציות תשתית בטוחות ---
+# --- פונקציית המפעל: מייצרת את כל 99 השלבים אוטומטית ---
+def generate_all_levels():
+    if os.path.exists(CONTENT_FILE):
+        return # הקובץ כבר קיים, לא לדרוס
+
+    db = {"7-9": {}, "10-12": {}, "13-15": {}}
+    
+    # מבנה המשימות (8 משימות לכל שלב)
+    tasks_types = ["vocab", "spelling", "grammar", "reading", "video", "tf", "game", "boss"]
+    
+    for age_group in db.keys():
+        for level in range(1, 100): # 99 שלבים
+            db[age_group][str(level)] = {}
+            for sub in range(8):
+                # מילוי אוטומטי של שלד השאלות
+                db[age_group][str(level)][str(sub)] = {
+                    "type": tasks_types[sub],
+                    "q": f"שאלה {sub+1} לשלב {level} - קבוצת גיל {age_group}",
+                    "a": "תשובה",
+                    "options": ["תשובה 1", "תשובה 2", "תשובה 3", "תשובה 4"]
+                }
+    
+    with open(CONTENT_FILE, "w", encoding="utf-8") as f:
+        json.dump(db, f, indent=4, ensure_ascii=False)
+
+# הרצה ראשונית של המפעל
+generate_all_levels()
+
+# --- פונקציות טעינה ---
 def load_json(filename):
     if not os.path.exists(filename): return {}
     with open(filename, "r", encoding="utf-8") as f:
@@ -19,102 +47,50 @@ def save_json(filename, data):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-def initialize_system():
-    """מייצר את בסיס הנתונים של השאלות אם הוא לא קיים"""
-    if not os.path.exists(CONTENT_FILE):
-        db = {"7-9": {}, "10-12": {}, "13-15": {}}
-        for age_group in db.keys():
-            for level in range(1, 100):
-                db[age_group][str(level)] = {}
-                for sub in range(8):
-                    db[age_group][str(level)][str(sub)] = {
-                        "q": f"שאלה לדוגמה לשלב {level}, משימה {sub+1}",
-                        "options": ["תשובה א", "תשובה ב", "תשובה ג", "תשובה ד"],
-                        "a": "תשובה א"
-                    }
-        save_json(CONTENT_FILE, db)
+# --- לוגיקה ---
+if "user" not in st.session_state: st.session_state.user = None
 
-# הרצה ראשונית של המערכת
-initialize_system()
-
-# --- לוגיקה וניהול משתמש ---
-if "user" not in st.session_state:
-    st.session_state.user = None
-
-def get_mission(user, content):
-    """שולפת משימה בצורה בטוחה בלי לגרום לקריסת המערכת"""
-    age = user.get('age', 9)
-    group = "7-9" if age <= 9 else "10-12" if age <= 12 else "13-15"
-    lvl = str(user.get('level', 1))
-    sub = str(user.get('sub_level', 0))
-    
-    # בודקים אם המפתח קיים לפני שניגשים אליו
-    if group in content and lvl in content[group] and sub in content[group][lvl]:
-        return content[group][lvl][sub]
-    return None
-
-# --- ממשק משתמש ---
 db = load_json(DB_FILE)
 content = load_json(CONTENT_FILE)
 
+# ממשק משתמש
 if st.session_state.user is None:
-    st.title("🎓 ברוכים הבאים")
-    # טאב כניסה
-    name = st.selectbox("בחר משתמש:", list(db.keys()) if db else ["אין משתמשים"])
-    if st.button("התחבר"):
-        if name in db:
-            st.session_state.user = db[name]
-            st.rerun()
-    
-    # טאב הרשמה
-    with st.expander("משתמש חדש? הירשם כאן"):
-        n = st.text_input("שם מלא")
-        a = st.number_input("גיל", 6, 16, 9)
-        if st.button("הירשם"):
-            if n and n not in db:
-                db[n] = {"name": n, "age": a, "level": 1, "sub_level": 0}
-                save_json(DB_FILE, db)
-                st.session_state.user = db[n]
-                st.rerun()
-
+    st.title("🎓 SmartEnglish Academy")
+    n = st.text_input("שם משתמש")
+    a = st.number_input("גיל", 7, 15, 9)
+    if st.button("התחל לשחק"):
+        db[n] = {"name": n, "age": a, "level": 1, "sub_level": 0}
+        save_json(DB_FILE, db)
+        st.session_state.user = db[n]
+        st.rerun()
 else:
     user = st.session_state.user
+    age_group = "7-9" if user['age'] <= 9 else "10-12" if user['age'] <= 12 else "13-15"
     
-    # ניווט
-    if st.sidebar.button("התנתק"):
-        st.session_state.user = None
-        st.rerun()
+    # ניסיון שליפת משימה
+    try:
+        mission = content[age_group][str(user['level'])][str(user['sub_level'])]
         
-    st.sidebar.write(f"היי {user['name']}! רמה: {user['level']}")
-    
-    # טעינת משימה
-    mission = get_mission(user, content)
-    
-    if mission:
-        st.header(f"שלב {user['level']} - משימה {int(user['sub_level'])+1}")
-        st.info(mission["q"])
+        st.header(f"שלב {user['level']} | משימה {int(user['sub_level'])+1}")
+        st.subheader(mission['q'])
         
-        ans = st.radio("בחר תשובה:", mission["options"])
+        ans = st.radio("בחר תשובה:", mission['options'])
         
-        if st.button("בדוק"):
-            if ans == mission["a"]:
-                st.success("כל הכבוד! עוברים לשלב הבא")
-                # עדכון התקדמות
+        if st.button("בדוק תשובה"):
+            if ans == mission['a']:
+                st.success("נכון! עובר למשימה הבאה...")
                 user['sub_level'] += 1
                 if user['sub_level'] > 7:
                     user['level'] += 1
                     user['sub_level'] = 0
-                
-                # שמירה
                 db[user['name']] = user
                 save_json(DB_FILE, db)
-                st.session_state.user = user
                 st.rerun()
             else:
-                st.error("לא נורא, נסה שוב!")
-    else:
-        st.warning("השלב הנוכחי טרם הוגדר בתוכן.")
-        if st.button("אפס התקדמות לחזרה להתחלה"):
+                st.error("לא נכון, נסה שוב")
+    except:
+        st.write("סיימת את כל השלבים! כל הכבוד!")
+        if st.button("איפוס"):
             user['level'] = 1
             user['sub_level'] = 0
             db[user['name']] = user
