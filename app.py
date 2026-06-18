@@ -1,114 +1,107 @@
 import streamlit as st
 import random
+import json
 import time
 
 # --- הגדרות עמוד ---
-st.set_page_config(page_title="SmartEnglish Pro", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Nexus English Academy", layout="wide")
 
-# --- CSS משופר (תיקון פונטים ו-RTL) ---
+# --- CSS מעוצב ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;600;900&display=swap');
-    
-    /* יישור לימין לכל האפליקציה */
-    .stApp { direction: rtl; font-family: 'Heebo', sans-serif; }
-    
-    /* תיקון גודל פונט לרדיו ותשובות */
-    [data-testid="stRadio"] label p { font-size: 22px !important; font-weight: bold; }
-    
-    /* עיצוב כרטיסיות */
-    .big-card { background: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 2px solid #e0f2fe; }
-    
-    h1, h2 { color: #0369a1 !important; text-align: right; }
-    
-    .stButton>button { width: 100%; height: 60px; font-size: 22px !important; border-radius: 15px !important; background: linear-gradient(to right, #3b82f6, #2563eb) !important; color: white !important; }
-    
-    .sidebar-content { font-size: 18px; }
+    .stApp { direction: rtl; font-family: 'Heebo', sans-serif; background: #f8fafc; }
+    .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .mission-title { color: #0f172a; font-size: 24px; font-weight: bold; }
+    .reward-box { background: #fef3c7; border: 2px dashed #f59e0b; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- ניהול משתמשים (Memory) ---
-if 'profile' not in st.session_state:
-    st.session_state.profile = None
+# --- ניהול משתמשים (התחברות ושמירה) ---
+if 'user' not in st.session_state:
+    st.session_state.user = None
+
+def save_game():
+    data = json.dumps(st.session_state.user)
+    st.download_button("💾 שמור התקדמות למחשב", data, file_name="my_progress.json")
+
+def load_game():
+    uploaded_file = st.file_uploader("📂 טען התקדמות קיימת", type="json")
+    if uploaded_file is not None:
+        st.session_state.user = json.load(uploaded_file)
+        st.rerun()
 
 # --- דף כניסה ---
-if st.session_state.profile is None:
-    st.title("🚀 ברוכים הבאים לאקדמיית האנגלית")
-    with st.form("login"):
-        name = st.text_input("שם הילד/ה:")
+if not st.session_state.user:
+    st.title("🎓 Nexus English Academy")
+    load_game()
+    with st.form("login_form"):
+        name = st.text_input("שם:")
         age = st.number_input("גיל:", 6, 18, 9)
         gender = st.selectbox("מגדר:", ["בן", "בת"])
-        if st.form_submit_button("התחל משחק"):
-            st.session_state.profile = {
-                "name": name, "age": age, "gender": gender, 
-                "level": 1, "score": 0, "rewards": []
+        if st.form_submit_button("התחל הרפתקה!"):
+            st.session_state.user = {
+                "name": name, "age": age, "gender": gender,
+                "level": 1, "sub_level": 0, "rewards": []
             }
             st.rerun()
     st.stop()
 
-# --- פונקציות עזר למנוע המשחק ---
-def get_reward(level, gender):
-    # לוגיקת נדירות
-    rarity = "נדיר" if level > 10 else "רגיל"
-    rarity = "אגדי" if level > 30 else rarity
-    rarity = "מיתולוגי" if level > 50 else rarity
+# --- לוגיקת תוכן (מנוע שלבים) ---
+def get_mission_content(level, sub_level, age):
+    # כאן אפשר להוסיף לוגיקה שמגדילה את הקושי לפי הגיל
+    difficulty = "קל" if age < 10 else "בינוני" if age < 14 else "קשה"
     
-    # בנק פרסים לפי מגדר
-    if gender == "בן":
-        items = ["⚽ קלף שחקן ליגת האלופות", "⚡ פוקימון אגדי", "🏎️ מכונית מרוץ זהב"]
-    else:
-        items = ["🦄 חד קרן קסום", "✨ שרביט כוכבים", "🎨 ערכת צבעים מלכותית"]
-        
-    return f"{rarity} ✨ {random.choice(items)}"
+    missions = [
+        {"title": "מילים: מצא את הזוג", "type": "vocab"},
+        {"title": "איות: סדר את האותיות", "type": "scramble"},
+        {"title": "דקדוק: השלם את המשפט", "type": "grammar"},
+        {"title": "קריאה: הבנת הנקרא", "type": "story"},
+        {"title": "הקשבה: צפה בסרטון", "type": "video"},
+        {"title": "נכון או לא נכון", "type": "tf"},
+        {"title": "משחק זיכרון", "type": "memory"},
+        {"title": "הבוס הגדול!", "type": "boss"}
+    ]
+    return missions[sub_level], difficulty
 
-# --- מסד נתונים (תוכל להרחיב כאן ל-99 שלבים) ---
-# הערה: פה הוספתי דוגמה לאיך בונים שלב. אפשר לייצר פונקציה שתגריל שאלות לפי גיל.
-def get_level_data(level):
-    # רמת קושי עולה ככל שה-level גבוה יותר
-    return {
-        "title": f"שלב {level}: הרפתקה באנגלית",
-        "question": f"מה התרגום הנכון ל-Level {level}?",
-        "options": ["אופציה א", "אופציה ב", "אופציה ג"],
-        "correct": "אופציה א",
-        "video": "https://www.youtube.com/watch?v=dQw4w9WgXcQ" # שנה לכל שלב
-    }
-
-# --- דשבורד בצד (הנתונים של הילד) ---
+# --- דשבורד בצד ---
 with st.sidebar:
-    p = st.session_state.profile
-    st.write(f"## 👤 {p['name']}")
-    st.write(f"### 🛡️ שלב: {p['level']}")
-    st.progress(min((p['level']-1)/99, 1.0))
+    u = st.session_state.user
+    st.write(f"## 👤 שלום {u['name']}")
+    st.write(f"### 🏆 רמה: {u['level']} / 99")
+    st.progress(u['sub_level'] / 8)
+    save_game()
     st.write("---")
-    st.write("### 🎒 הארנק שלי:")
-    for r in p['rewards']: st.write(f"- {r}")
+    st.write("### 🎒 התיק שלי:")
+    for r in u['rewards']: st.write(r)
 
-# --- ממשק המשחק ---
-p = st.session_state.profile
-data = get_level_data(p['level'])
+# --- ממשק המשימות ---
+mission, diff = get_mission_content(st.session_state.user['level'], st.session_state.user['sub_level'], st.session_state.user['age'])
 
-st.markdown(f"<h1>{data['title']}</h1>", unsafe_allow_html=True)
-st.video(data['video'])
+st.markdown(f'<div class="card"><div class="mission-title">{mission["title"]} ({diff})</div></div>', unsafe_allow_html=True)
 
-st.markdown('<div class="big-card">', unsafe_allow_html=True)
-st.subheader(data['question'])
-choice = st.radio("בחר תשובה:", data['options'], index=None)
-
-if st.button("בדוק תשובה"):
-    if choice == data['correct']:
-        st.success("✅ כל הכבוד!")
-        p['score'] += 100
-        p['level'] += 1
-        
-        # זכייה בפרס כל 5 שלבים
-        if p['level'] % 5 == 0:
-            reward = get_reward(p['level'], p['gender'])
-            p['rewards'].append(reward)
-            st.balloons()
-            st.success(f"🎊 זכית בפרס חדש: {reward}")
-            
-        time.sleep(1)
+# תצוגת משימות לפי סוג
+if mission['type'] == 'video':
+    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ") # החלף בקישור רלוונטי
+    if st.button("סיימתי לצפות"):
+        st.session_state.user['sub_level'] += 1
         st.rerun()
-    else:
-        st.error("❌ לא נורא, נסה שוב.")
-st.markdown('</div>', unsafe_allow_html=True)
+
+elif mission['type'] == 'boss':
+    st.warning("זהו שלב הבוס! ענה נכון כדי לעבור רמה.")
+    if st.button("ניצחתי את הבוס!"):
+        st.session_state.user['level'] += 1
+        st.session_state.user['sub_level'] = 0
+        
+        # מתן פרס כל 10 שלבים
+        if st.session_state.user['level'] % 10 == 0:
+            reward = "✨ פרס נדיר: קלף פוקימון זהב" if st.session_state.user['gender'] == "בן" else "🦄 פרס נדיר: חדי קרן קסומים"
+            st.session_state.user['rewards'].append(reward)
+            st.balloons()
+        st.rerun()
+
+else:
+    # כאן אתה שם את השאלות שלך לכל משימה
+    st.write(f"שאלה לדוגמה עבור משימת ה-{mission['type']}...")
+    if st.button("הגש תשובה"):
+        st.session_state.user['sub_level'] += 1
+        st.rerun()
