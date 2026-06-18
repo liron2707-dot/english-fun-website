@@ -7,8 +7,8 @@ import time
 # --- הגדרות מערכת ---
 st.set_page_config(page_title="Nexus English Adventure", page_icon="🌌", layout="wide", initial_sidebar_state="collapsed")
 
-DB_FILE = "users_db.json"
-CONTENT_FILE = "content.json"
+DB_FILE = "users_db_v2.json"
+CONTENT_FILE = "content_v2.json"
 
 # --- פונקציות תשתית ומסד נתונים ---
 def load_json(filename):
