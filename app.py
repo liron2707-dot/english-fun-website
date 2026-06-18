@@ -3,128 +3,117 @@ import json
 import os
 import random
 
-# --- הגדרות מסד נתונים ---
+# --- הגדרות ---
 DB_FILE = "users_db.json"
+st.set_page_config(page_title="Nexus English Academy", layout="wide")
 
+# --- CSS עיצוב פרימיום ---
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap');
+    
+    * { font-family: 'Heebo', sans-serif; }
+    
+    /* עיצוב כללי */
+    .stApp { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; }
+    
+    /* כרטיסים */
+    .hero-card { background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+    
+    /* כפתורים */
+    .stButton>button { width: 100%; border-radius: 50px; font-weight: 900; background: #3b82f6; border: none; padding: 20px; font-size: 20px; }
+    
+    /* ממשק */
+    [data-testid="stSidebar"] { background: #020617; }
+    h1, h2, h3 { color: #f8fafc; text-align: center; }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- פונקציות מסד נתונים ---
 def load_db():
     if not os.path.exists(DB_FILE): return {}
-    with open(DB_FILE, "r") as f:
-        try: return json.load(f)
-        except: return {}
+    with open(DB_FILE, "r") as f: return json.load(f)
 
 def save_db(db):
     with open(DB_FILE, "w") as f: json.dump(db, f, indent=4)
 
-def delete_user(username):
-    db = load_db()
-    if username in db:
-        del db[username]
-        save_db(db)
-        return True
-    return False
-
-# --- מנוע תוכן (Content Generator) ---
-def get_mission(age, level, sub_level):
-    # הגדרת רמת קושי
-    if age <= 9: group = "7-9"
-    elif age <= 12: group = "10-12"
-    else: group = "13-15"
-
-    # בנק משימות לכל קבוצת גיל (כאן אתה מוסיף תוכן)
-    content_map = {
-        "7-9": {
-            "vocab": {"q": "תרגם: Dog", "a": "כלב"},
-            "grammar": {"q": "He ____ (eat) an apple.", "a": "eats"}
-        },
-        "10-12": {
-            "vocab": {"q": "תרגם: Environment", "a": "סביבה"},
-            "grammar": {"q": "I ____ (go) to the park yesterday.", "a": "went"}
-        },
-        "13-15": {
-            "vocab": {"q": "תרגם: Sophisticated", "a": "מתוחכם"},
-            "grammar": {"q": "If I ____ (be) you, I would go.", "a": "were"}
-        }
-    }
+# --- מנוע תוכן (הלב של המערכת) ---
+def get_mission_content(level, age):
+    # מנוע שמייצר שאלות דינמיות
+    categories = ["אוצר מילים", "איות", "דקדוק", "קריאה", "הבנת הנשמע", "נכון/לא נכון", "חידון", "בוס!"]
+    current_mission = categories[level % 8] # מחזיר משימה לפי השלב
     
-    # תיאורי המשימות
-    mission_types = [
-        "אוצר מילים", "איות", "דקדוק", "קריאה", 
-        "הבנת הנשמע", "נכון/לא נכון", "משחק זיכרון", "קרב בוס!"
-    ]
+    # תבניות תוכן לפי גיל
+    difficulty = "קל" if age < 10 else "בינוני" if age < 13 else "מתקדם"
     
     return {
-        "title": mission_types[sub_level],
-        "content": content_map[group].get(list(content_map[group].keys())[sub_level % 2], {"q": "משימה כללית", "a": "כן"})
+        "title": f"שלב {level} - {current_mission}",
+        "question": f"שאלה עבור {difficulty} - מה הפירוש של Word {level}?",
+        "options": ["אפשרות א", "אפשרות ב", "אפשרות ג"],
+        "answer": "אפשרות א"
     }
 
-# --- ממשק משתמש ---
-st.set_page_config(page_title="Nexus Academy", layout="wide")
-
-if "user" not in st.session_state: st.session_state.user = None
-
-# כניסה/הרשמה
-if st.session_state.user is None:
-    st.title("🎓 Nexus Academy")
+# --- מסך כניסה ---
+def render_login():
+    st.markdown('<div class="hero-card"><h1>🚀 Nexus English Academy</h1><p>הדרך הכי מרגשת ללמוד אנגלית</p></div>', unsafe_allow_html=True)
     db = load_db()
     
-    tab1, tab2 = st.tabs(["כניסה", "הרשמה"])
-    
-    with tab1:
-        name = st.selectbox("בחר משתמש:", list(db.keys()))
-        if st.button("כניסה"):
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("כניסה למשתמש קיים")
+        name = st.selectbox("בחר שם:", list(db.keys()))
+        if st.button("התחבר"):
             st.session_state.user = db[name]
             st.rerun()
             
-    with tab2:
-        with st.form("reg"):
-            n = st.text_input("שם:")
-            a = st.number_input("גיל:", 6, 18, 9)
-            if st.form_submit_button("הירשם"):
-                db[n] = {"name": n, "age": a, "level": 1, "sub_level": 0, "rewards": []}
+    with col2:
+        st.subheader("משתמש חדש")
+        n = st.text_input("שם מלא")
+        a = st.number_input("גיל", 6, 16, 9)
+        if st.button("התחל מסע!"):
+            if n not in db:
+                db[n] = {"name": n, "age": a, "level": 1, "rewards": []}
                 save_db(db)
                 st.session_state.user = db[n]
                 st.rerun()
-    st.stop()
+            else: st.error("שם תפוס!")
 
-# --- אזור המשחק ---
-user = st.session_state.user
-db = load_db()
-
-# סרגל צד
-with st.sidebar:
-    st.header(f"שלום {user['name']} 🛡️")
-    st.write(f"רמה: {user['level']} | קבוצת גיל: {user['age']}")
-    st.progress(user['sub_level'] / 8)
+# --- מסך המשחק ---
+def render_game():
+    u = st.session_state.user
+    db = load_db()
     
-    st.write("### 🎒 תיק פרסים:")
-    for r in user['rewards']: st.write(f"⭐ {r}")
+    # סרגל צד
+    with st.sidebar:
+        st.title(f"שלום {u['name']}")
+        st.write(f"רמה: {u['level']} / 99")
+        st.progress(u['level'] / 99)
+        if st.button("מחק משתמש ❌"):
+            del db[u['name']]
+            save_db(db)
+            st.session_state.user = None
+            st.rerun()
+        if st.button("התנתק"):
+            st.session_state.user = None
+            st.rerun()
+
+    # משימה נוכחית
+    m = get_mission_content(u['level'], u['age'])
+    st.markdown(f"## {m['title']}")
     
-    if st.button("❌ מחק משתמש"):
-        delete_user(user['name'])
-        st.session_state.user = None
-        st.rerun()
-    if st.button("התנתק"):
-        st.session_state.user = None
-        st.rerun()
+    with st.container():
+        st.write(f"### {m['question']}")
+        ans = st.radio("בחר תשובה:", m['options'])
+        if st.button("הגש"):
+            u['level'] += 1
+            db[u['name']] = u
+            save_db(db)
+            st.rerun()
 
-# לוגיקת המשימות
-mission = get_mission(user['age'], user['level'], user['sub_level'])
-st.title(f"שלב {user['level']} - {mission['title']}")
-st.info(mission['content']['q'])
+# --- לוגיקה ראשית ---
+if "user" not in st.session_state: st.session_state.user = None
 
-if st.button("הגש תשובה"):
-    user['sub_level'] += 1
-    # מעבר שלב
-    if user['sub_level'] >= 8:
-        user['level'] += 1
-        user['sub_level'] = 0
-        # פרס כל 10 שלבים
-        if user['level'] % 10 == 0:
-            reward = "✨ גביע הזהב"
-            user['rewards'].append(reward)
-            st.balloons()
-            
-    # שמירה ל-DB
-    db[user['name']] = user
-    save_db(db)
-    st.rerun()
+if st.session_state.user is None:
+    render_login()
+else:
+    render_game()
