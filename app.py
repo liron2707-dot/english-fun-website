@@ -5,7 +5,7 @@ import time
 import random
 
 # --- הגדרות דף בסיסיות ומורחבות ---
-st.set_page_config(page_title="Nexus English Academy V10", page_icon="🌌", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Nexus English Academy V10.1", page_icon="🌌", layout="wide", initial_sidebar_state="expanded")
 
 DB_FILE = "users_db_v10.json"
 CONTENT_FILE = "content_v10.json"
@@ -13,7 +13,7 @@ CONTENT_FILE = "content_v10.json"
 # --- הזרקת עיצוב CSS יציב, מנוגד וברור לילדים ובני נוער ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght=400;700;900&display=swap');
     
     html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Heebo', sans-serif !important;
@@ -83,13 +83,11 @@ def ensure_content_exists():
     if os.path.exists(CONTENT_FILE): return
     db = {"7-9": {}, "10-12": {}, "13-15": {}}
     
-    # מאגר סרטונים חינוכיים איכותיים
     videos = [
-        "https://www.youtube.com/watch?v=tRNy2i75tCc", # צבעים
-        "https://www.youtube.com/watch?v=75p-N9YKqNo"  # חיות
+        "https://www.youtube.com/watch?v=tRNy2i75tCc", 
+        "https://www.youtube.com/watch?v=75p-N9YKqNo"  
     ]
     
-    # מאגרי מידע עשירים ומובנים ללא מילים שבורות
     raw_data = {
         "7-9": {
             "vocab": [("Dog", "כלב", "חיה מבויתת שנובחת"), ("Cat", "חתול", "חיה קטנה שמיללת ומגרגרת"), ("Apple", "תפוח", "פרי עגול וטעים שיכול להיות אדום או ירוק"), ("Milk", "חלב", "משקה לבן ומזין שמגיע מהפרה"), ("Sun", "שמש", "הכוכב הגדול בשמיים שמביא לנו אור וחום")],
@@ -114,7 +112,6 @@ def ensure_content_exists():
         }
     }
 
-    # בניית 50 שלבים מלאים עם 8 משימות מגוונות לכל גיל
     for age, data in raw_data.items():
         for level in range(1, 51):
             db[age][str(level)] = {}
@@ -149,7 +146,6 @@ def ensure_content_exists():
                 elif sub == 7:
                     task = {"title": "⚔️ משימת הבוס הגדול של השלב!", "q": f"הגעת למשימה ה-8 והאחרונה בשלב {level}! האם אתה מוכן להשלים את השלב ולשמור את ההתקדמות?", "a": "כן! בוא ננצח את הבוס!", "options": ["כן! בוא ננצח את הבוס!", "לא, אני רוצה לחזור אחר כך"], "hint": "לחץ על האפשרות הראשונה כדי להעפיל לשלב הבא בגאווה!"}
                 
-                # ערבוב תשובות מבוקר ובטוח
                 opts = list(set(task["options"]))
                 if len(opts) < 4 and sub not in [5, 7]: opts += ["אפשרות הגנה 1", "אפשרות הגנה 2"]
                 random.shuffle(opts)
@@ -172,7 +168,7 @@ if "hint_clicked" not in st.session_state: st.session_state.hint_clicked = False
 # מסך 1: מסך כניסה ורישום שחקנים
 # ==========================================
 if st.session_state.screen == "login":
-    st.title("🌌 NEXUS ENGLISH ACADEMY - V10")
+    st.title("🌌 NEXUS ENGLISH ACADEMY - V10.1")
     st.write("ברוכים הבאים למערכת המורחבת ללימוד אנגלית. היכנסו לחשבון או צרו שחקן חדש:")
     st.markdown("---")
     
@@ -182,7 +178,18 @@ if st.session_state.screen == "login":
         existing_name = st.selectbox("בחר את השם שלך מהרשימה:", list(users_db.keys()) if users_db else ["אין עדיין שחקנים רשומים"])
         if st.button("התחבר והמשך מהנקודה שעצרת 🚀", use_container_width=True):
             if existing_name in users_db:
-                st.session_state.user = users_db[existing_name]
+                curr_user = users_db[existing_name]
+                
+                # 🛠️ תיקון אוטומטי מובנה למניעת ה-KeyError שחווית במשתמשי עבר
+                if "group" not in curr_user:
+                    age = curr_user.get("age", 11)
+                    if age <= 9: curr_user["group"] = "7-9"
+                    elif age <= 12: curr_user["group"] = "10-12"
+                    else: curr_user["group"] = "13-15"
+                    users_db[existing_name] = curr_user
+                    save_json(DB_FILE, users_db)
+                
+                st.session_state.user = curr_user
                 st.session_state.screen = "game"
                 st.session_state.hint_clicked = False
                 st.rerun()
@@ -193,7 +200,6 @@ if st.session_state.screen == "login":
         new_age = st.number_input("בן כמה אתה? (גילאי 7 עד 15)", 7, 15, 11)
         if st.button("פתח משתמש חדש והתחל מאפס 🎮", use_container_width=True):
             if new_name and new_name not in users_db:
-                # קביעת קבוצת הגיל הפדגוגית
                 if new_age <= 9: group = "7-9"
                 elif new_age <= 12: group = "10-12"
                 else: group = "13-15"
@@ -224,7 +230,8 @@ elif st.session_state.screen == "milestone":
     st.markdown(f"<div style='background-color:#eff6ff; color:#1e40af; padding:25px; border-radius:15px; font-size:26px; font-weight:bold; border:2px solid #3b82f6; margin:25px 0;'>🎁 הפרס שנוסף לכספת שלך: {prize}</div>", unsafe_allow_html=True)
     
     if st.button("אסוף את הפרס לארון והמשך לשלב הבא ➡️", type="primary", use_container_width=True):
-        if prize not in user["rewards"]:
+        if prize not in user.get("rewards", []):
+            if "rewards" not in user: user["rewards"] = []
             user["rewards"].append(prize)
         users_db[user['name']] = user
         save_json(DB_FILE, users_db)
@@ -234,18 +241,19 @@ elif st.session_state.screen == "milestone":
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================================
-# מסך 3: לוח המשחק והלמידה המרכזי העשיר
+# מסך 3: לוח המשחק והלמידה המרכזי
 # ==========================================
 elif st.session_state.screen == "game" and st.session_state.user is not None:
     user = st.session_state.user
     
-    # --- סיידבר ניהול, התקדמות וארון גביעים מלא ---
+    # --- סיידבר ניהול, התקדמות וארון גביעים ---
     with st.sidebar:
         st.markdown(f"## 🕵️‍♂️ פרופיל: {user['name']}")
-        st.write(f"**קבוצת לימוד:** גילאי {user['group']}")
+        # שימוש ב-.get בטוח כדי לא לקרוס לעולם
+        st.write(f"**קבוצת לימוד:** גילאי {user.get('group', '10-12')}")
         st.write(f"**ניקוד מצטבר:** {user.get('score', 0)} 🏆")
-        st.write(f"**שלב נוכחי:** {user['level']} / 50")
-        st.progress(user['level'] / 50)
+        st.write(f"**שלב נוכחי:** {user.get('level', 1)} / 50")
+        st.progress(user.get('level', 1) / 50)
         
         st.markdown("---")
         st.markdown("### 🎒 כספת ארון הפרסים שלך")
@@ -256,7 +264,6 @@ elif st.session_state.screen == "game" and st.session_state.user is not None:
                 st.success(f"⭐ {r}")
                 
         st.markdown("---")
-        # כפתור הורדת קובץ ה-JSON לבקשתך
         with open(CONTENT_FILE, "r", encoding="utf-8") as f:
             json_data_to_download = f.read()
         st.download_button(
@@ -273,10 +280,10 @@ elif st.session_state.screen == "game" and st.session_state.user is not None:
             st.session_state.screen = "login"
             st.rerun()
 
-    # שליפת המשימה הספציפית מתוך ה-JSON הפדגוגי הנכון
-    lvl_str = str(user['level'])
-    sub_str = str(user['sub_level'])
-    age_group = user['group']
+    # שליפת המשימה
+    lvl_str = str(user.get('level', 1))
+    sub_str = str(user.get('sub_level', 0))
+    age_group = user.get('group', '10-12')
     
     mission = content_db.get(age_group, {}).get(lvl_str, {}).get(sub_str, {})
     
@@ -285,34 +292,28 @@ elif st.session_state.screen == "game" and st.session_state.user is not None:
         st.success("👑 מדהים! השלמתם את כל 50 השלבים באפליקציה בהצלחה ענקית!")
         st.stop()
 
-    # --- כותרות עליונות ומחוון התקדמות בתוך השלב הנוכחי ---
     st.title(f"📍 שלב: {lvl_str} מתוך 50")
     st.subheader(f"🎯 משימה פנימית: {int(sub_str)+1} מתוך 8")
     st.progress((int(sub_str)) / 8.0)
     st.markdown("---")
 
-    # כרטיסיית המשימה המרכזית בעיצוב נקי וברור
+    # כרטיסיית המשימה
     st.markdown('<div class="cyber-card">', unsafe_allow_html=True)
     st.markdown(f'<div class="cyber-title">סוג המשימה: {mission.get("title", "משימה")}</div>', unsafe_allow_html=True)
     
-    # במידה ויש קטע קריאה (Unseen)
     if "unseen" in mission:
         st.markdown(f'<div class="english-unseen-box"><strong>📖 Read the story:</strong><br><br>{mission["unseen"]}</div>', unsafe_allow_html=True)
         
-    # במידה ויש סרטון מובנה
     if "video_url" in mission:
         st.video(mission["video_url"])
         st.markdown("<p style='color:#3b82f6; font-weight:bold;'>צפו בסרטון הלימודי שלמעלה וענו על השאלה:</p>", unsafe_allow_html=True)
 
-    # הצגת השאלה האמיתית והמובנת
     st.markdown(f'<div class="cyber-text">👉 {mission.get("q", "שאלה חסרה")}</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # הצגת אפשרויות הבחירה (התשובות האמריקאיות)
     options = mission.get("options", ["A", "B", "C", "D"])
     ans = st.radio("בחר את התשובה הנכונה:", options, index=None, key=f"radio_v10_{lvl_str}_{sub_str}")
 
-    # --- מנגנון הרמזים החדש שהתבקש ---
     col_hint, col_space = st.columns([1, 3])
     with col_hint:
         if st.button("💡 קבל רמז לעזרה", use_container_width=True):
@@ -323,7 +324,6 @@ elif st.session_state.screen == "game" and st.session_state.user is not None:
 
     st.markdown("---")
 
-    # כפתור אישור ובדיקת התשובה
     if st.button("אשר תשובה והמשך קדימה ⚡", type="primary", use_container_width=True):
         if ans is None:
             st.warning("בבקשה בחר אפשרות אחת לפני שתלחץ על כפתור האישור!")
@@ -331,20 +331,16 @@ elif st.session_state.screen == "game" and st.session_state.user is not None:
             st.success("✅ מדהים! תשובה נכונה בהחלט. כל הכבוד! מרוויחים 10 נקודות.")
             time.sleep(1)
             
-            # עדכון המצב והניקוד של המשתמש
-            user['sub_level'] += 1
+            user['sub_level'] = user.get('sub_level', 0) + 1
             user['score'] = user.get('score', 0) + 10
             
-            # אם הוא סיים 8 משימות, הוא עולה שלב
             if user['sub_level'] > 7:
-                user['level'] += 1
+                user['level'] = user.get('level', 1) + 1
                 user['sub_level'] = 0
                 
-                # בדיקה האם הגיע לאבן דרך של 10 שלבים (למשל אחרי שלב 10, 20, 30...)
                 if (user['level'] - 1) % 10 == 0:
                     st.session_state.screen = "milestone"
             
-            # שמירה לקובץ ה-JSON
             users_db[user['name']] = user
             save_json(DB_FILE, users_db)
             st.session_state.hint_clicked = False
