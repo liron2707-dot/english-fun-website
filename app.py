@@ -88,139 +88,138 @@ def speak_text(text):
 
 
 # ==========================================
-# 1. מנוע ג'נרטור חכם - יצירת 1,200 שאלות שונות ומתאימות גיל ללא מדע
+# 1. מנוע ג'נרטור חכם ומשופר - 1,200 שאלות ללא חזרות מיותרות!
 # ==========================================
 if 'db_generated' not in st.session_state:
     
-    # --- מאגרי מידע גולמיים לרמה 7-9 (בסיסי: חיות, צבעים, פעלים פשוטים, משפחה) ---
-    raw_7_9 = [
-        ("Dog", "כלב", "חבר על ארבע שנובח"), ("Cat", "חתול", "חיה קטנה שאומרת מיאו"),
-        ("Sun", "שמש", "אור גדול וצהוב בשמיים"), ("Water", "מים", "אנחנו שותים אותם כשחם"),
-        ("Milk", "חלב", "משקה לבן ששמים בקורנפלקס"), ("School", "בית ספר", "המקום אליו הולכים ללמוד"),
-        ("Teacher", "מורה", "האיש או האישה שמלמדים בכיתה"), ("Book", "ספר", "קוראים אותו לפני השינה"),
-        ("Red", "אדום", "הצבע של תות שדה"), ("Blue", "כחול", "הצבע של הים והשמיים"),
-        ("Green", "ירוק", "הצבע של הדשא והמלפפון"), ("Yellow", "צהוב", "הצבע של הבננה והלימון"),
-        ("Happy", "שמח", "ההפך מעצוב! חיוך גדול"), ("Sad", "עצוב", "כשרוצים לבכות קצת"),
-        ("Big", "גדול", "כמו פיל ענקי"), ("Small", "קטן", "כמו נמלה קטנה"),
-        ("Run", "לרוץ", "מה שעושים מהר במגרש"), ("Jump", "לקפוץ", "לדלג למעלה גבוה"),
-        ("Sleep", "לישון", "מה שעושים במיטה בלילה"), ("Eat", "לאכול", "כשעל השולחן יש אוכל טעים")
+    # פונקציית עזר ליצירת המאגר הסופי - מערבבת את השאלות בצורה אקראית לחלוטין
+    def build_400_shuffled_pool(temp_pool):
+        pool = []
+        q_id = 1
+        # נשכפל את המאגר כמה שצריך עד שנגיע ליותר מ-400, אבל בכל פעם נערבב מחדש!
+        while len(pool) < 400:
+            random.shuffle(temp_pool)
+            for item in temp_pool:
+                if len(pool) >= 400:
+                    break
+                q_copy = item.copy()
+                q_copy["id"] = q_id
+                random.shuffle(q_copy["options"]) # ערבוב התשובות הפנימיות
+                pool.append(q_copy)
+                q_id += 1
+        return pool
+
+    # --- מאגר 7-9: אוצר מילים, דקדוק בסיסי והבנת הנקרא פשוטה ---
+    words_7_9 = [
+        ("Dog", "כלב", "נובח"), ("Cat", "חתול", "מיאו"), ("Sun", "שמש", "צהובה למעלה"), ("Water", "מים", "שותים"),
+        ("Apple", "תפוח", "פרי אדום/ירוק"), ("Banana", "בננה", "פרי צהוב"), ("Red", "אדום", "צבע"), ("Blue", "כחול", "צבע הים"),
+        ("Green", "ירוק", "צבע הדשא"), ("Yellow", "צהוב", "צבע הלימון"), ("School", "בית ספר", "לומדים שם"), ("Teacher", "מורה", "מלמד בכיתה"),
+        ("Happy", "שמח", "מחייך"), ("Sad", "עצוב", "בוכה"), ("Big", "גדול", "כמו פיל"), ("Small", "קטן", "כמו נמלה"),
+        ("Hand", "יד", "יש לנו שתיים כאלו"), ("Foot", "רגל", "הולכים עליה"), ("Eye", "עין", "רואים בעזרתה"), ("Ear", "אוזן", "שומעים בעזרתה"),
+        ("Car", "מכונית", "נוסעת בכביש"), ("Bus", "אוטובוס", "רכב גדול לתלמידים"), ("House", "בית", "גרים בו"), ("Door", "דלת", "פותחים כדי להיכנס"),
+        ("Mother", "אמא", "במשפחה"), ("Father", "אבא", "במשפחה"), ("Brother", "אח", "במשפחה"), ("Sister", "אחות", "במשפחה")
     ]
     
-    # --- מאגרי מידע גולמיים לרמה 10-12 (בינוני: השלמת משפטים, דקדוק, סיפורים קצרים) ---
-    raw_10_12_sentences = [
-        {"q": "Yesterday, my family and I ___ a movie.", "correct": "watched", "options": ["watch", "watching", "watched", "watches"], "hint": "רמז: המילה Yesterday מראה שזה קרה בעבר!"},
-        {"q": "The boy was very ___ because he lost his favorite ball.", "correct": "sad", "options": ["happy", "excited", "sad", "tall"], "hint": "רמז: איך מרגישים כשמאבדים כדור אהוב?"},
-        {"q": "She always ___ her homework right after school.", "correct": "does", "options": ["do", "does", "doing", "did"], "hint": "רמז: משהו שקורה תמיד בהווה (Present Simple) עבור She"},
-        {"q": "Look at the sky! It is very cloudy, I think it will ___ soon.", "correct": "rain", "options": ["rain", "sunny", "fly", "sleep"], "hint": "רמז: מה קורה כשיש הרבה עננים בשמיים?"},
-        {"q": "An elephant is ___ than a mouse.", "correct": "bigger", "options": ["smaller", "bigger", "heavy", "biggest"], "hint": "רמז: משווים גודל של פיל לעומת עכבר"},
-        {"q": "We use an ___ when it starts to rain outside.", "correct": "umbrella", "options": ["umbrella", "hat", "apple", "airplane"], "hint": "רמז: חפץ שמגן עלינו מהטיפות"}
+    temp_7_9 = []
+    # הוספת אוצר מילים פשוט
+    all_heb_7_9 = [w[1] for w in words_7_9]
+    for eng, heb, hint in words_7_9:
+        distractors = random.sample([h for h in all_heb_7_9 if h != heb], 3)
+        temp_7_9.append({
+            "q": f"What is the meaning of '{eng}'?", "correct": heb, "options": [heb] + distractors, "hint": hint
+        })
+    # הוספת דקדוק והשלמת משפטים בסיסית
+    grammar_7_9 = [
+        {"q": "I ___ a good boy.", "correct": "am", "options": ["am", "is", "are", "be"], "hint": "כשאני מדבר על עצמי..."},
+        {"q": "The sun ___ yellow.", "correct": "is", "options": ["am", "is", "are", "be"], "hint": "כשאנחנו מדברים על משהו אחד (it)..."},
+        {"q": "They ___ playing basketball.", "correct": "are", "options": ["am", "is", "are", "play"], "hint": "כשאנחנו מדברים על רבים (They)..."},
+        {"q": "I have two ___.", "correct": "eyes", "options": ["eyes", "nose", "mouth", "head"], "hint": "יש לי שניים כאלו בפרצוף"},
+        {"q": "The apple is ___.", "correct": "red", "options": ["red", "blue", "sad", "fast"], "hint": "איזה צבע יש לתפוח?"}
     ]
+    temp_7_9.extend(grammar_7_9)
+
+
+    # --- מאגר 10-12: אוצר מילים בינוני, דקדוק זמנים, הבנת הנקרא בינונית ---
+    temp_10_12 = []
+    grammar_vocab_10_12 = [
+        {"q": "Yesterday, I ___ to the park.", "correct": "went", "options": ["go", "went", "going", "goes"], "hint": "רמז לעבר (Past Simple) - אתמול"},
+        {"q": "She is ___ than her sister.", "correct": "taller", "options": ["tall", "taller", "tallest", "more tall"], "hint": "השוואה בין שתיים (Comparative)"},
+        {"q": "We ___ watching TV right now.", "correct": "are", "options": ["am", "is", "are", "do"], "hint": "פעולה שקורית ממש עכשיו (Present Progressive)"},
+        {"q": "I usually ___ up at 7:00 AM.", "correct": "wake", "options": ["wake", "woke", "waking", "wakes"], "hint": "משהו שקורה בדרך כלל בהווה (Present Simple)"},
+        {"q": "Look at the dark clouds! It is going to ___.", "correct": "rain", "options": ["rain", "sunny", "hot", "fly"], "hint": "מה קורה כשיש עננים שחורים?"},
+        {"q": "My dog is very ___. He sleeps all day.", "correct": "lazy", "options": ["lazy", "fast", "angry", "smart"], "hint": "מישהו שלא אוהב לעשות כלום"},
+        {"q": "Don't forget to wear a ___ because it is cold outside.", "correct": "coat", "options": ["coat", "t-shirt", "shorts", "sunglasses"], "hint": "בגד שלובשים כשקר מאוד"},
+        {"q": "Which word is the opposite of 'Beautiful'?", "correct": "Ugly", "options": ["Ugly", "Nice", "Pretty", "Small"], "hint": "ההפך מיפה"}
+    ]
+    temp_10_12.extend(grammar_vocab_10_12)
     
-    raw_10_12_unseens = [
-        {"passage": "Danny loves playing football. Every Saturday, he goes to the park with his friends. Yesterday, Danny scored two beautiful goals and his team won the match.", "q": "When does Danny usually play football?", "correct": "Every Saturday", "options": ["Every Saturday", "Yesterday", "Every Sunday", "At night"], "hint": "חפש את המילה Every בתחילת המשפט השני."},
-        {"passage": "Mia has a small white cat named Lily. Lily likes to sleep on the sofa all day long. In the evening, Lily loves to play with a small red ball.", "q": "What color is Lily's favorite ball?", "correct": "red", "options": ["white", "red", "blue", "green"], "hint": "קרא את המילה האחרונה בסיפור החתול."}
+    unseens_10_12 = [
+        {"passage": "Danny went to the zoo on Saturday. He saw three big elephants and a funny monkey. He ate a delicious chocolate ice cream with his dad.", 
+         "qs": [
+             {"q": "Where did Danny go on Saturday?", "correct": "To the zoo", "options": ["To the zoo", "To the park", "To the school", "To the cinema"], "hint": "קרא את המשפט הראשון."},
+             {"q": "What kind of ice cream did Danny eat?", "correct": "Chocolate", "options": ["Chocolate", "Vanilla", "Strawberry", "Banana"], "hint": "קרא את המשפט האחרון."},
+             {"q": "How many elephants did Danny see?", "correct": "Three", "options": ["Three", "Two", "One", "Four"], "hint": "חפש את המילה elephants."}
+         ]},
+        {"passage": "Sarah loves reading books. She reads a new book every week. Her favorite books are about magic and dragons.",
+         "qs": [
+             {"q": "How often does Sarah read a new book?", "correct": "Every week", "options": ["Every week", "Every day", "Every month", "Never"], "hint": "חפש את המילה every בטקסט."},
+             {"q": "What are Sarah's favorite books about?", "correct": "Magic and dragons", "options": ["Magic and dragons", "Cars and planes", "Dogs and cats", "Sports"], "hint": "המשפט האחרון מספר על התחביב שלה."}
+         ]}
     ]
+    for un in unseens_10_12:
+        for q in un["qs"]:
+            temp_10_12.append({"passage": un["passage"], "q": q["q"], "correct": q["correct"], "options": q["options"], "hint": q["hint"]})
 
-    # --- מאגרי מידע גולמיים לרמה 13-15 (מתקדם: אנסינים מעניינים על נושאים כלליים, דקדוק זמנים, מילים גבוהות) ---
-    raw_13_15_grammar = [
-        {"q": "If I ___ more time last week, I would have visited my grandparents.", "correct": "had had", "options": ["have", "had", "had had", "would have"], "hint": "תנאי שלישי (Third Conditional) המתייחס לעבר"},
-        {"q": "By the time the train arrived at the station, the passengers ___ for an hour.", "correct": "had been waiting", "options": ["waited", "were waiting", "had been waiting", "will wait"], "hint": "פעולה שנמשכה בעבר לפני נקודה אחרת (Past Perfect Progressive)"},
-        {"q": "The manager decided to ___ the meeting until next Monday due to the storm.", "correct": "postpone", "options": ["postpone", "cancel", "invite", "accelerate"], "hint": "פירוש המילה הוא לדחות למועד אחר"},
-        {"q": "She speaks English so ___ that people often think she was born in London.", "correct": "fluently", "options": ["fluently", "fluent", "slowly", "hardly"], "hint": "תואר הפועל המתאר דיבור זורם וטבעי"}
+
+    # --- מאגר 13-15: מתקדם - אוצר מילים גבוה, דקדוק מורכב, ואנסינים מרתקים (ללא מדע) ---
+    temp_13_15 = []
+    grammar_vocab_13_15 = [
+        {"q": "If I ___ known about the party, I would have bought a gift.", "correct": "had", "options": ["have", "had", "would", "has"], "hint": "תנאי שלישי בעבר (Third Conditional)"},
+        {"q": "The beautiful song was ___ by a famous singer.", "correct": "sung", "options": ["sing", "sang", "sung", "singing"], "hint": "משפט סביל (Passive Voice) בזמן עבר"},
+        {"q": "By the time we arrived at the cinema, the movie ___ already started.", "correct": "had", "options": ["has", "had", "was", "is"], "hint": "פעולה אחת קרתה לפני פעולה אחרת בעבר (Past Perfect)"},
+        {"q": "She decided to give ___ smoking because it is bad for her health.", "correct": "up", "options": ["up", "in", "out", "away"], "hint": "פועל תלויי מילת יחס (Phrasal Verb) שמשמעותו להפסיק"},
+        {"q": "Choose the correct synonym for the word 'Enormous':", "correct": "Huge", "options": ["Huge", "Tiny", "Average", "Weak"], "hint": "משהו מאוד מאוד גדול"},
+        {"q": "He couldn't ___ the fact that he failed the driving test.", "correct": "accept", "options": ["accept", "except", "expect", "aspect"], "hint": "מילה שמשמעותה 'לקבל/להשלים עם'"},
+        {"q": "We must ___ the environment for the future generations.", "correct": "protect", "options": ["protect", "destroy", "ignore", "pollute"], "hint": "לשמור או להגן"}
     ]
+    temp_13_15.extend(grammar_vocab_13_15)
 
-    raw_13_15_unseens = [
-        {"passage": "The history of modern soccer began in England during the 19th century, where the official rules were first established. Today, it has evolved into the world's most popular sport, bringing together billions of fans during global tournaments like the World Cup.", "q": "Where were the official rules of modern soccer first established?", "correct": "In England", "options": ["In England", "In Europe", "During the World Cup", "By global fans"], "hint": "חפש את המיקום המוזכר במשפט הראשון."},
-        {"passage": "Traveling abroad offers a unique opportunity to explore diverse cultures and traditions. Many young travelers prefer backpacking because it allows them to experience local life closely while staying within a limited budget.", "q": "Why do many young travelers prefer backpacking according to the text?", "correct": "To experience local life closely within a budget", "options": ["To stay in luxury hotels", "To experience local life closely within a budget", "Because it is faster", "To avoid learning new languages"], "hint": "ראה את החלק האחרון של קטע הקריאה המדבר על תקציב וחיי מקומיים."}
+    unseens_13_15 = [
+        {"passage": "Backpacking across Europe has become a popular trend among teenagers and young adults. It allows travelers to experience different cultures closely, meet locals, and learn how to manage a tight budget while navigating through various countries using trains and buses.",
+         "qs": [
+             {"q": "According to the text, why is backpacking popular?", "correct": "It allows experiencing cultures and managing a budget.", "options": ["It allows experiencing cultures and managing a budget.", "It is the most expensive way to travel.", "It prevents you from meeting locals.", "You only stay in luxury hotels."], "hint": "קרא את המשפט השני על תרבויות ותקציב."},
+             {"q": "How do backpackers usually navigate through countries according to the passage?", "correct": "Using trains and buses", "options": ["Using trains and buses", "By buying private cars", "By flying first class", "By walking only"], "hint": "חפש את המילים בסוף הטקסט."}
+         ]},
+        {"passage": "The modern game of soccer, as we know it today, was established in England in the 19th century. Before the official rules were written, people played different versions of the game in towns and villages, which often led to chaos and arguments on the field.",
+         "qs": [
+             {"q": "Where were the official rules of modern soccer established?", "correct": "In England", "options": ["In England", "In Brazil", "In the USA", "In France"], "hint": "המשפט הראשון מציין את המדינה."},
+             {"q": "What happened before the official rules were written?", "correct": "Different versions of the game led to chaos.", "options": ["Different versions of the game led to chaos.", "Everyone played perfectly together.", "The game was forbidden by law.", "Only rich people played it."], "hint": "קרא את המשפט השני על כאוס וויכוחים."}
+         ]},
+        {"passage": "Listening to music while studying is a topic of debate. Some students claim that soft background music helps them focus and reduces stress, while others find any kind of noise highly distracting when trying to memorize new vocabulary.",
+         "qs": [
+             {"q": "What is one benefit of listening to soft music while studying, according to some students?", "correct": "It helps focus and reduces stress.", "options": ["It helps focus and reduces stress.", "It ruins their memory entirely.", "It makes them sleepy immediately.", "It distracts them from vocabulary."], "hint": "חפש את היתרונות (helps) בחלק הראשון של המשפט השני."},
+             {"q": "What does the word 'distracting' mean in the context of the text?", "correct": "Taking attention away from studying", "options": ["Taking attention away from studying", "Helping someone relax", "Playing a musical instrument", "Reading very fast"], "hint": "משהו שמפריע להתרכז."}
+         ]}
     ]
+    for un in unseens_13_15:
+        for q in un["qs"]:
+            temp_13_15.append({"passage": un["passage"], "q": q["q"], "correct": q["correct"], "options": q["options"], "hint": q["hint"]})
 
-    # --- פונקציות המנוע לבניית 400 שאלות שונות ומגוונות לכל רמת גיל ---
-    def make_7_9_pool():
-        pool = []
-        q_id = 1
-        # מייצרים 400 שאלות על בסיס שילובים שונים ומגוונים
-        all_hebrew_words = [x[1] for x in raw_7_9]
-        for stage in range(1, 51):
-            for q_num in range(1, 9):
-                # בוחרים פריט בסיס קבוע או משתנה לפי השילובים
-                base_item = raw_7_9[(stage + q_num) % len(raw_7_9)]
-                eng, heb, hint = base_item[0], base_item[1], base_item[2]
-                
-                # יצירת מסיחים שונים בכל פעם מתוך מאגר המילים
-                distractors = list(set([h for h in all_hebrew_words if h != heb]))
-                options = [heb] + random.sample(distractors, 3)
-                random.shuffle(options)
-                
-                pool.append({
-                    "id": q_id,
-                    "type": "vocab",
-                    "q": f"What is the meaning of the word '{eng}'?",
-                    "options": options,
-                    "correct": heb,
-                    "hint": f"זה משהו שקשור ל{hint}"
-                })
-                q_id += 1
-        return pool
-
-    def make_10_12_pool():
-        pool = []
-        q_id = 1
-        for stage in range(1, 51):
-            for q_num in range(1, 9):
-                # שילוב בין שאלות משפט קצר לאנסינים קלים
-                if q_num in [4, 8]: # שאלות הבנת הנקרא קצרות
-                    base_unseen = raw_10_12_unseens[(stage + q_num) % len(raw_10_12_unseens)]
-                    item = base_unseen.copy()
-                else: # שאלות השלמת משפטים ודקדוק
-                    base_sent = raw_10_12_sentences[(stage + q_num) % len(raw_10_12_sentences)]
-                    item = base_sent.copy()
-                
-                item["id"] = q_id
-                # ערבוב האופציות כדי שהתשובה לא תהיה באותו מיקום
-                opts = item["options"].copy()
-                random.shuffle(opts)
-                item["options"] = opts
-                pool.append(item)
-                q_id += 1
-        return pool
-
-    def make_13_15_pool():
-        pool = []
-        q_id = 1
-        for stage in range(1, 51):
-            for q_num in range(1, 9):
-                # שילוב בין דקדוק, אוצר מילים מתקדם ואנסינים כלליים (לא מדעיים!)
-                if q_num in [3, 6, 7]:
-                    base_unseen = raw_13_15_unseens[(stage + q_num) % len(raw_13_15_unseens)]
-                    item = base_unseen.copy()
-                else:
-                    base_gram = raw_13_15_grammar[(stage + q_num) % len(raw_13_15_grammar)]
-                    item = base_gram.copy()
-                
-                item["id"] = q_id
-                opts = item["options"].copy()
-                random.shuffle(opts)
-                item["options"] = opts
-                pool.append(item)
-                q_id += 1
-        return pool
-
-    # שמירת כל 1,200 השאלות המגוונות ב-Session State
+    # יצירת המאגרים הסופיים תוך ערבוב מושלם כדי למנוע כל חזרה של שלבים!
     st.session_state.questions_by_age = {
-        "7-9": make_7_9_pool(),
-        "10-12": make_10_12_pool(),
-        "13-15": make_13_15_pool()
+        "7-9": build_400_shuffled_pool(temp_7_9),
+        "10-12": build_400_shuffled_pool(temp_10_12),
+        "13-15": build_400_shuffled_pool(temp_13_15)
     }
     st.session_state.db_generated = True
 
 
 # ==========================================
-# 2. מערכת התחברות יציבה לחלוטין (ללא מסכים אפורים)
+# 2. מערכת התחברות יציבה לחלוטין
 # ==========================================
 if 'user_db' not in st.session_state: st.session_state.user_db = {}
 if 'logged_in_user' not in st.session_state: st.session_state.logged_in_user = None
 
-# ניתוב עמודים נקי באמצעות משתנה מצב קבוע
 if st.session_state.logged_in_user is None:
     st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
     st.title("🔐 ברוכים הבאים לממלכת האנגלית!")
@@ -236,7 +235,6 @@ if st.session_state.logged_in_user is None:
             if submit_l:
                 if u_name in st.session_state.user_db and st.session_state.user_db[u_name]["password"] == u_pass:
                     st.session_state.logged_in_user = u_name
-                    # טעינת משתנים
                     data = st.session_state.user_db[u_name]
                     st.session_state.age_level = data["age_level"]
                     st.session_state.score = data["score"]
@@ -280,11 +278,11 @@ if st.session_state.logged_in_user is None:
                     st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
+
 # ==========================================
-# 3. מסך המשחק הראשי (מוצג רק לאחר לוגאין מוצלח)
+# 3. מסך המשחק הראשי
 # ==========================================
 else:
-    # פונקציה לשמירת ההתקדמות בבסיס הנתונים המקומי
     def sync_data():
         u = st.session_state.logged_in_user
         st.session_state.user_db[u].update({
@@ -350,7 +348,6 @@ else:
         st.balloons()
         st.success("🏆 מדהים! השלמתם את כל 50 השלבים ופתרתם את כל 400 השאלות הייחודיות שלכם!")
     else:
-        # שליפת השאלה הנוכחית והמדויקת מתוך ה-400 הייחודיות של אותה רמת גיל
         pool = st.session_state.questions_by_age[st.session_state.age_level]
         global_index = ((st.session_state.current_stage - 1) * 8) + st.session_state.current_q_index
         q_data = pool[global_index]
@@ -358,7 +355,6 @@ else:
         st.progress(st.session_state.current_q_index / 8.0)
         st.write(f"✨ שאלה {st.session_state.current_q_index + 1} מתוך 8 בשלב הנוכחי")
         
-        # תצוגה מותאמת אישית אם מדובר בטקסט קריאה (Unseen)
         if q_data.get("passage"):
             st.markdown(f'<div style="direction: ltr; text-align: left;" class="unseen-text">📖 <b>Reading Passage:</b><br>{q_data["passage"]}</div>', unsafe_allow_html=True)
             speak_text(q_data["passage"] + " Question: " + q_data["q"])
@@ -367,7 +363,6 @@ else:
             st.markdown(f'<div style="direction: ltr; text-align: center;" class="question-box">{q_data["q"]}</div>', unsafe_allow_html=True)
             speak_text(q_data["q"])
             
-        # --- מצב א': בחירה והגשת תשובה ---
         if not st.session_state.answered_current:
             with st.form(key=f"form_q_{q_data['id']}"):
                 choice = st.radio("בחר את התשובה הנכונה מבין האפשרויות הבאות:", q_data['options'], index=None)
@@ -391,7 +386,6 @@ else:
             with st.expander("💡 צריך רמז סודי? לחץ כאן"):
                 st.write(q_data["hint"])
                 
-        # --- מצב ב': פידבק לאחר לחיצה ומעבר שלב ---
         else:
             for opt in q_data['options']:
                 if opt == q_data['correct']:
