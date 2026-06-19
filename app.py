@@ -10,7 +10,7 @@ import os
 USER_DB_FILE = "users_db.json"
 
 # ==========================================
-# מאגר התמונות האמיתיות לפרסים ולקלפים 
+# מאגר התמונות האמיתיות לפרסים ולקלפים (עודכן והורחב!)
 # ==========================================
 PRIZE_IMAGES = {
     "🍦 גלידת קצפת ענקית": "https://images.unsplash.com/photo-1563805042-7684c8a9e9cb?q=80&w=800",
@@ -18,7 +18,29 @@ PRIZE_IMAGES = {
     "🔥 קלף פוקימון Charizard VMAX נדיר!": "https://images.pokemontcg.io/swsh3/20_hires.png",
     "⚡ קלף פוקימון Pikachu Gold Star": "https://images.pokemontcg.io/ex13/104_hires.png",
     "⚽ חפיסת קלפי Adrenalyn XL זהב": "https://m.media-amazon.com/images/I/81xU+aYmC5L._AC_SX679_.jpg",
-    "🏆 קלף מוזהב נדיר Match Attax": "https://m.media-amazon.com/images/I/81p+kZ1O8nL._AC_SX679_.jpg"
+    "🏆 קלף מוזהב נדיר Match Attax": "https://m.media-amazon.com/images/I/81p+kZ1O8nL._AC_SX679_.jpg",
+    # תוספות חדשות ומטורפות לשלבים הגבוהים!
+    "📱 אייפון 15 פרו מקס אמיתי!": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=800",
+    "🎮 סוני פלייסטיישן 5": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800",
+    "🦸‍♂️ קלף ספיידרמן נדיר מארוול": "https://images.unsplash.com/photo-1608889175123-8ee362201f81?q=80&w=800",
+    "🦄 בובת חד קרן ענקית": "https://images.unsplash.com/photo-1559715541-5daf8a0296d0?q=80&w=800",
+    "🏎️ מכונית על למבורגיני": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=800",
+    "👑 כתר יהלומים של מלך האנגלית": "https://images.unsplash.com/photo-1595986630530-969786b19b4d?q=80&w=800"
+}
+
+# מילון תמונות (אימוג'ים ברורים שמשמשים כתמונה) לילדי 4-6 שלא יודעים לקרוא
+toddler_pics = {
+    "Dog": "🐶", "Cat": "🐱", "Sun": "☀️", "Water": "💧", "Boy": "👦", "Girl": "👧",
+    "Red": "🔴", "Blue": "🔵", "Green": "🟢", "Yellow": "🟡",
+    "One": "1️⃣", "Two": "2️⃣", "Three": "3️⃣", "Four": "4️⃣", "Five": "5️⃣",
+    "Apple": "🍎", "Banana": "🍌", "Car": "🚗", "Ball": "⚽",
+    "Yes": "✅", "No": "❌", "Hello": "👋", "Bye": "👋",
+    "Mom": "👩", "Dad": "👨", "Eye": "👁️", "Nose": "👃", "Mouth": "👄", "Ear": "👂",
+    "Hand": "✋", "Leg": "🦵", "Big": "🐘", "Small": "🐜",
+    "Happy": "😊", "Sad": "😢", "Hot": "🔥", "Cold": "❄️",
+    "Milk": "🥛", "Tree": "🌳", "Flower": "🌻", "Bird": "🐦", "Fish": "🐟",
+    "House": "🏠", "Door": "🚪", "Window": "🪟", "Bed": "🛏️",
+    "Morning": "🌅", "Night": "🌙"
 }
 
 # הגדרות עמוד ותצוגה
@@ -90,6 +112,17 @@ st.markdown("""
         text-shadow: 1px 1px 2px black;
         margin-bottom: 10px;
     }
+    .vip-card {
+        background: linear-gradient(135deg, #111, #444);
+        border: 4px solid gold;
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        color: gold;
+        text-shadow: 1px 1px 2px black;
+        margin-bottom: 10px;
+    }
     
     /* אנימציית פתיחת קלפים בכספת (3D Flip) */
     .flip-card {
@@ -134,7 +167,7 @@ st.markdown("""
     }
     .flip-card-back {
       transform: rotateY(180deg);
-      background-size: contain;
+      background-size: cover;
       background-repeat: no-repeat;
       background-position: center;
       background-color: #1a1a1a;
@@ -143,14 +176,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# פונקציית הקראה קולית משופרת עם תמיכה באנגלית ובעברית (לגילאי 4-6)
+# פונקציית הקראה קולית משופרת עם תמיכה באנגלית ובעברית
 def speak_text(text_en, text_he=""):
     safe_en = text_en.replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
     
     if text_he:
         safe_he = text_he.replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
         html_code = f"""
-        <div style='display:flex; justify-content:center; gap:15px; margin-bottom: 10px;'>
+        <div style='display:flex; justify-content:center; gap:15px; margin-bottom: 5px;'>
             <button onclick="var msg = new SpeechSynthesisUtterance('{safe_he}'); msg.lang='he-IL'; msg.rate=0.85; window.speechSynthesis.speak(msg);" 
             style="background-color:#3498db; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);">
                 🔊 הקרא שאלה בעברית
@@ -160,17 +193,19 @@ def speak_text(text_en, text_he=""):
                 🔊 הקרא באנגלית
             </button>
         </div>
+        <p style="text-align:center; font-size:14px; color:gray; margin-top:0;">(אם לא שומעים בנייד, יש לוודא שהטלפון לא על מצב שקט)</p>
         """
     else:
         html_code = f"""
-        <div style='display:flex; justify-content:center; margin-bottom: 10px;'>
+        <div style='display:flex; justify-content:center; margin-bottom: 5px;'>
             <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; msg.rate=0.85; window.speechSynthesis.speak(msg);" 
             style="background-color:#F39C12; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);">
                 🔊 לחץ כאן להקראת הטקסט באנגלית
             </button>
         </div>
+        <p style="text-align:center; font-size:14px; color:gray; margin-top:0;">(אם לא שומעים בנייד, יש לוודא שהטלפון לא על מצב שקט)</p>
         """
-    components.html(html_code, height=60)
+    components.html(html_code, height=80)
 
 
 # ==========================================
@@ -186,49 +221,69 @@ if 'db_generated' not in st.session_state:
                 words.append((eng.strip(), heb.strip()))
         
         all_hebrew = [w[1] for w in words]
+        heb_to_eng = {w[1]: w[0] for w in words}
+        
         questions = []
         for eng, heb in words:
-            # שאלת תרגום לאנגלית
+            # שאלת תרגום לאנגלית (אופציות בעברית)
             distractors = random.sample([h for h in all_hebrew if h != heb], 3)
             options = distractors + [heb]
             random.shuffle(options)
             
             if is_toddler:
+                # הוספת התמונות/אימוג'ים לאופציות ולתשובה הנכונה
+                options_with_pics = [f"{h} {toddler_pics.get(heb_to_eng[h], '✨')}" for h in options]
+                correct_with_pic = f"{heb} {toddler_pics.get(eng, '✨')}"
+                
                 q_text1 = f"מה הפירוש של המילה '{eng}'?"
                 hint1 = f"💡 רמז סודי: התשובה בעברית מתחילה באות '{heb[0]}'."
                 audio_he1 = f"מה הפירוש של המילה {eng}?"
                 audio_en1 = eng
+                
+                questions.append({
+                    "q": q_text1, "correct": correct_with_pic, "options": options_with_pics, "hint": hint1,
+                    "audio_he": audio_he1, "audio_en": audio_en1
+                })
             else:
                 q_text1 = f"What is the meaning of the word '{eng}'?"
                 hint1 = f"💡 רמז סודי: התשובה בעברית מתחילה באות '{heb[0]}'."
                 audio_he1 = ""
                 audio_en1 = q_text1
                 
-            questions.append({
-                "q": q_text1, "correct": heb, "options": options, "hint": hint1,
-                "audio_he": audio_he1, "audio_en": audio_en1
-            })
+                questions.append({
+                    "q": q_text1, "correct": heb, "options": options, "hint": hint1,
+                    "audio_he": audio_he1, "audio_en": audio_en1
+                })
             
-            # שאלת השלמה לאנגלית
+            # שאלת השלמה לאנגלית (אופציות באנגלית)
             distractors_eng = random.sample([w[0] for w in words if w[0] != eng], 3)
             options_eng = distractors_eng + [eng]
             random.shuffle(options_eng)
             
             if is_toddler:
+                # הוספת התמונות לאופציות באנגלית
+                options_eng_with_pics = [f"{e} {toddler_pics.get(e, '✨')}" for e in options_eng]
+                correct_eng_with_pic = f"{eng} {toddler_pics.get(eng, '✨')}"
+                
                 q_text2 = f"איך אומרים '{heb}' באנגלית?"
                 hint2 = f"💡 רמז סודי: התשובה באנגלית מתחילה באות '{eng[0]}'."
                 audio_he2 = f"איך אומרים {heb} באנגלית?"
                 audio_en2 = "The options are: " + ", ".join(options_eng)
+                
+                questions.append({
+                    "q": q_text2, "correct": correct_eng_with_pic, "options": options_eng_with_pics, "hint": hint2,
+                    "audio_he": audio_he2, "audio_en": audio_en2
+                })
             else:
                 q_text2 = f"How do you say '{heb}' in English?"
                 hint2 = f"💡 רמז סודי: התשובה באנגלית מתחילה באות '{eng[0]}'."
                 audio_he2 = ""
                 audio_en2 = q_text2
                 
-            questions.append({
-                "q": q_text2, "correct": eng, "options": options_eng, "hint": hint2,
-                "audio_he": audio_he2, "audio_en": audio_en2
-            })
+                questions.append({
+                    "q": q_text2, "correct": eng, "options": options_eng, "hint": hint2,
+                    "audio_he": audio_he2, "audio_en": audio_en2
+                })
             
         random.shuffle(questions)
         return questions[:amount]
@@ -512,7 +567,13 @@ else:
             {"name": "🔥 קלף פוקימון Charizard VMAX נדיר!", "cost": 100, "stage": 5, "type": "pokemon"},
             {"name": "⚡ קלף פוקימון Pikachu Gold Star", "cost": 150, "stage": 5, "type": "pokemon"},
             {"name": "⚽ חפיסת קלפי Adrenalyn XL זהב", "cost": 200, "stage": 10, "type": "soccer"},
-            {"name": "🏆 קלף מוזהב נדיר Match Attax", "cost": 300, "stage": 20, "type": "soccer"}
+            {"name": "🏆 קלף מוזהב נדיר Match Attax", "cost": 300, "stage": 20, "type": "soccer"},
+            {"name": "📱 אייפון 15 פרו מקס אמיתי!", "cost": 400, "stage": 25, "type": "gadget"},
+            {"name": "🎮 סוני פלייסטיישן 5", "cost": 500, "stage": 30, "type": "gadget"},
+            {"name": "🦸‍♂️ קלף ספיידרמן נדיר מארוול", "cost": 600, "stage": 35, "type": "marvel"},
+            {"name": "🦄 בובת חד קרן ענקית", "cost": 700, "stage": 40, "type": "normal"},
+            {"name": "🏎️ מכונית על למבורגיני", "cost": 800, "stage": 45, "type": "normal"},
+            {"name": "👑 כתר יהלומים של מלך האנגלית", "cost": 1000, "stage": 50, "type": "vip"}
         ]
         
         for item in shop_items:
@@ -527,6 +588,8 @@ else:
                 st.markdown(f'<div class="trading-card-pokemon">⭐ POKÉMON CARD ⭐<br><b>{item["name"].split("!")[0]}</b></div>', unsafe_allow_html=True)
             elif not is_locked and item['type'] == 'soccer':
                 st.markdown(f'<div class="trading-card-soccer">⚽ MATCH ATTAX / ADRENALYN ⚽<br><b>{item["name"]}</b></div>', unsafe_allow_html=True)
+            elif not is_locked and item['type'] in ['gadget', 'marvel', 'vip']:
+                st.markdown(f'<div class="vip-card">✨ VIP ITEM ✨<br><b>{item["name"]}</b></div>', unsafe_allow_html=True)
                 
             if st.button(btn_text, key=f"buy_{item['name']}", disabled=disabled_btn, use_container_width=True):
                 st.session_state.stars -= item['cost']
