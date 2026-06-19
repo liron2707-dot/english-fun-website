@@ -193,7 +193,8 @@ if 'db_generated' not in st.session_state:
     raw_vocab_13_15 = "Environment:סביבה|Pollution:זיהום|Climate:אקלים|Discover:לגלות|Invent:להמציא|Technology:טכנולוגיה|Society:חברה|Culture:תרבות|Tradition:מסורת|Government:ממשלה|Election:בחירות|Law:חוק|Crime:פשע|Punishment:עונש|Justice:צדק|Peace:שלום|War:מלחמה|Army:צבא|Soldier:חייל|Weapon:נשק|Economy:כלכלה|Business:עסק|Company:חברה (עסקית)|Factory:מפעל|Industry:תעשייה|Trade:סחר|Import:ייבוא|Export:ייצוא|Profit:רווח|Loss:הפסד|Success:הצלחה|Failure:כישלון|Challenge:אתגר|Opportunity:הזדמנות|Advantage:יתרון|Disadvantage:חיסרון|Benefit:תועלת|Harm:נזק|Risk:סיכון|Protect:להגן|Destroy:להרוס|Create:ליצור|Improve:לשפר|Develop:לפתח|Grow:לגדול/לצמוח|Reduce:להפחית|Increase:להגדיל|Measure:למדוד|Compare:להשוות|Contrast:לעמת (למצוא הבדלים)|Explain:להסביר|Describe:לתאר|Argue:להתווכח|Agree:להסכים|Disagree:לא להסכים|Opinion:דעה|Fact:עובדה|Evidence:ראיה/הוכחה|Prove:להוכיח|Suggest:להציע|Advise:לייעץ|Recommend:להמליץ|Decide:להחליט|Choose:לבחור|Option:אפשרות|Alternative:חלופה|Result:תוצאה|Cause:גורם|Effect:השפעה/תוצאה|Reason:סיבה|Purpose:מטרה|Goal:יעד|Achieve:להשיג|Succeed:להצליח|Fail:להיכשל|Attempt:ניסיון|Effort:מאמץ|Energy:אנרגיה|Power:כוח|Control:שליטה|Manage:לנהל|Organize:לארגן|Plan:לתכנן|Prepare:להכין"
 
     grammar_13_15 = []
-    phrasal = [("give up", "להיכנע/לוותר"), ("look after", "לשמור על"), ("take off", "להמריא/להוריד"), ("run out of", "לגמור את המלאי")]
+    # כאן היה התיקון: החלפתי את "run out of" ל-"find out" כדי שיהיו בדיוק 2 מילים לחלוקה
+    phrasal = [("give up", "להיכנע/לוותר"), ("look after", "לשמור על"), ("take off", "להמריא/להוריד"), ("find out", "לגלות")]
     for _ in range(50):
         phrase, mean = random.choice(phrasal)
         distractors = random.sample(["in", "on", "at", "over", "down", "away"], 3)
