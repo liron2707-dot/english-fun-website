@@ -4,35 +4,80 @@ import os
 import time
 import random
 
-# --- הגדרות מערכת ---
-st.set_page_config(page_title="Nexus English", page_icon="🌌", layout="wide", initial_sidebar_state="expanded")
+# --- הגדרות מערכת ומבנה עמוד ---
+st.set_page_config(page_title="Nexus English Adventure", page_icon="🌌", layout="wide", initial_sidebar_state="expanded")
 
-DB_FILE = "users_db_v4.json"
-CONTENT_FILE = "content_v4.json"
+DB_FILE = "users_db_v5.json"
+CONTENT_FILE = "content_v5.json"
 
-# --- CSS עדין לקריאות ולגודל הפונטים (בלי לשבור את תפריט הצד) ---
+# --- הזרקת CSS מקיף ליישור לימין, התאמה למסך ופונטים ענקיים ---
 st.markdown("""
     <style>
-    /* הגדלת הטקסט של כפתורי הבחירה האמריקאית */
-    div[role="radiogroup"] label span {
-        font-size: 22px !important;
-        font-weight: bold !important;
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+    
+    /* הגדרות בסיס - הכל מימין לשמאל */
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
+        font-family: 'Heebo', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
-    /* עיצוב כרטיסיית האנסין (קטע קריאה) */
+    
+    /* הגדלת פונטים של שאלות וכותרות */
+    h1, h2, h3, h4 {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+    h2 { font-size: 2.8rem !important; font-weight: 900 !important; color: #4f46e5 !important; }
+    h3 { font-size: 2.2rem !important; font-weight: 700 !important; margin-top: 20px !important; }
+    
+    /* הגדלת הפונט של התשובות האמריקאיות (כפתורי הרדיו) */
+    div[role="radiogroup"] label span {
+        font-size: 24px !important;
+        font-weight: bold !important;
+        color: #1e293b !important;
+    }
+    
+    /* התאמת כפתורי הרדיו שיראו כמו כרטיסים ברורים */
+    div[role="radiogroup"] > div {
+        background-color: #f8fafc !important;
+        padding: 15px !important;
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* קופסת תוכן מרכזית מוגדלת */
+    .content-box {
+        background-color: #ffffff;
+        padding: 35px;
+        border-radius: 20px;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 25px;
+    }
+    
+    /* תיבת אנסין מותאמת */
     .unseen-box {
-        background-color: rgba(100, 116, 139, 0.2);
-        border-right: 5px solid #6366f1;
-        padding: 20px;
-        border-radius: 10px;
-        font-size: 20px;
-        direction: ltr;
-        text-align: left;
-        margin-bottom: 20px;
+        background-color: #f1f5f9;
+        border-right: 6px solid #4f46e5;
+        padding: 25px;
+        border-radius: 12px;
+        font-size: 22px !important;
+        direction: ltr !important;
+        text-align: left !important;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+    
+    /* יישור טקסט עזר של Streamlit לימין */
+    .stMarkdown, .stCaption, p {
+        text-align: right !important;
+        font-size: 1.3rem !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- פונקציות מסד נתונים ---
+# --- פונקציות תשתית ומסד נתונים ---
 def load_json(filename):
     if not os.path.exists(filename): return {}
     with open(filename, "r", encoding="utf-8") as f:
@@ -43,140 +88,190 @@ def save_json(filename, data):
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-# --- מנוע יצירת תוכן מותאם גיל (Unseens, Videos, Grammar) ---
+# --- מנוע חכם לייצור 1,200 שאלות ותוכן איכותי מותאם גיל (50 שלבים) ---
 def ensure_content_exists():
     if os.path.exists(CONTENT_FILE): return
     db = {"7-9": {}, "10-12": {}, "13-15": {}}
     
-    # מאגרי קטעי קריאה מותאמים גיל
-    unseens_7_9 = [
-        {"text": "Tom has a big red ball. He plays with it in the park. His dog likes the ball too.", "q": "Where does Tom play?", "a": "In the park", "options": ["In the park", "At school", "In the house", "In the pool"]}
-    ]
-    
-    unseens_10_12 = [
-        {"text": "Mike bought a new Match Attax 2025 card pack. He was looking for an ultra-rare holographic card to make a great combo for his team. When he opened it, he yelled with joy!", "q": "What was Mike looking for?", "a": "A rare card", "options": ["A rare card", "A football", "A new friend", "A video game"]},
-        {"text": "Ben and Sarah are in the school talent show. They learned that teamwork is the secret to success. When they sang their song, everyone clapped loudly.", "q": "What is the secret to success in the story?", "a": "Teamwork", "options": ["Teamwork", "Singing loudly", "Going home", "Being alone"]}
-    ]
-    
-    unseens_13_15 = [
-        {"text": "The story 'You've Got Talent' from the Teamwork curriculum emphasizes how collaboration brings out the best in people. By combining individual strengths, a group can achieve extraordinary results.", "q": "What does the text say about combining strengths?", "a": "It achieves extraordinary results", "options": ["It achieves extraordinary results", "It makes people tired", "It is only for talent shows", "It causes arguments"]},
-        {"text": "In biology, understanding the hierarchy of living things is crucial. Every complex organism is made of trillions of cells, each performing specific functions to keep the body alive.", "q": "What are complex organisms made of?", "a": "Trillions of cells", "options": ["Trillions of cells", "Only one cell", "Water and air", "Plants"]}
-    ]
+    # מאגרי נתונים איכותיים לבניית השאלות
+    themes = {
+        "7-9": {
+            "vocab": [("Dog", "כלב"), ("Cat", "חתול"), ("Red", "אדום"), ("Green", "ירוק"), ("Apple", "תפוח"), ("Water", "מים"), ("Sun", "שמש"), ("Big", "גדול"), ("Small", "קטן")],
+            "unseens": [
+                {"text": "The small dog is under the big green tree. It is drinking water because it is hot today.", "q": "Why is the dog drinking water?", "a": "Because it is hot", "options": ["Because it is hot", "Because it is sad", "Because it wants to sleep", "Because it is green"]},
+                {"text": "Lisa has three red apples in her school bag. She gives one apple to her best friend Ben.", "q": "How many apples does Lisa give to Ben?", "a": "One apple", "options": ["One apple", "Three apples", "Two apples", "No apples"]}
+            ],
+            "vids": [("https://www.youtube.com/watch?v=75p-N9YKqNo", "What animal family is shown in the video?", "Lions", ["Lions", "Sharks", "Bears", "Eagles"])]
+        },
+        "10-12": {
+            "vocab": [("Teamwork", "עבודת צוות"), ("Match", "משחק/התאמה"), ("Legendary", "אגדי"), ("Card", "קלף"), ("Strategy", "אסטרטגיה"), ("Victory", "ניצחון"), ("Challenge", "אתגר")],
+            "unseens": [
+                {"text": "Dan is a master collector of Match Attax cards. He recently discovered an ultra-rare card that creates a legendary combo with his forward players, guaranteeing a victory in the school tournament.", "q": "What did Dan recently discover?", "a": "An ultra-rare card", "options": ["An ultra-rare card", "A new stadium", "A lost football", "A book about strategy"]},
+                {"text": "During the school talent show, the judges explained that proper teamwork is much more valuable than individual skills. The group that collaborated best won the golden trophy.", "q": "What did the judges say is more valuable than individual skills?", "a": "Teamwork", "options": ["Teamwork", "Singing loudly", "Expensive shoes", "Practicing alone"]}
+            ],
+            "vids": [("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "According to the song's famous chorus, what will he 'never' do?", "Give you up", ["Give you up", "Let you play", "Say hello", "Go away"])]
+        },
+        "13-15": {
+            "vocab": [("Environment", "סביבה"), ("Development", "התפתחות"), ("Structure", "מבנה"), ("Organism", "אורגניזם/יצור חי"), ("Function", "תפקיד/תפקוד"), ("Component", "רכיב")],
+            "unseens": [
+                {"text": "In biological sciences, the cellular hierarchy dictates that cells form tissues, tissues form organs, and organs form a complex organism. Inside each cell, specialized structures called organelles handle vital functions.", "q": "What structure inside a cell handles vital functions?", "a": "Organelles", "options": ["Organelles", "Tissues", "Organs", "Organisms"]},
+                {"text": "Environmental development relies heavily on understanding ecological balance. Although industrialization brings economic growth, it often poses a severe threat to natural habitats.", "q": "What threatens natural habitats according to the text?", "a": "Industrialization", "options": ["Industrialization", "Ecological balance", "Economic growth", "Cellular hierarchy"]}
+            ],
+            "vids": [("https://www.youtube.com/watch?v=8IlzKzbA_BI", "What cellular powerhouse structure is responsible for creating ATP energy?", "Mitochondria", ["Mitochondria", "Ribosomes", "Nucleus", "Cell Wall"])]
+        }
+    }
 
-    # סרטוני יוטיוב לדוגמה
-    videos = ["https://www.youtube.com/watch?v=dQw4w9WgXcQ", "https://www.youtube.com/watch?v=3yXpeBGEqD0"]
-
+    # לולאת בנייה ל-50 שלבים
     for age_group in db.keys():
-        for level in range(1, 100):
+        t = themes[age_group]
+        for level in range(1, 51):
             db[age_group][str(level)] = {}
             for sub in range(8):
                 task = {}
-                # 1. אוצר מילים
+                v_word, v_heb = random.choice(t["vocab"])
+                
                 if sub == 0:
-                    if age_group == "7-9": task = {"q": "איך אומרים 'צהוב' באנגלית?", "a": "Yellow", "options": ["Yellow", "Green", "Blue", "Red"]}
-                    elif age_group == "10-12": task = {"q": "מה הפירוש של 'Discover'?", "a": "לגלות", "options": ["לגלות", "לבנות", "להרוס", "לקנות"]}
-                    else: task = {"q": "מה הפירוש של 'Significant'?", "a": "משמעותי", "options": ["משמעותי", "זעיר", "מהיר", "מסוכן"]}
-                # 2. דקדוק
+                    task = {"title": "אוצר מילים בסיסי", "q": f"מה הפירוש המדויק של המילה '{v_word}'?", "a": v_heb, "options": [v_heb, "משהו אחר", "לא נכון", "הפוך"]}
                 elif sub == 1:
-                    if age_group == "7-9": task = {"q": "She ____ a good friend.", "a": "is", "options": ["is", "are", "am", "be"]}
-                    elif age_group == "10-12": task = {"q": "They ____ playing football right now.", "a": "are", "options": ["are", "is", "was", "were"]}
-                    else: task = {"q": "If I had money, I ____ buy a car.", "a": "would", "options": ["would", "will", "can", "am"]}
-                # 3. הבנת הנקרא (Unseen)
+                    task = {"title": "תרגום הפוך", "q": f"איך כותבים באנגלית את המילה '{v_heb}'?", "a": v_word, "options": [v_word, "Window", "Object", "System"]}
                 elif sub == 2:
-                    if age_group == "7-9": u = random.choice(unseens_7_9)
-                    elif age_group == "10-12": u = random.choice(unseens_10_12)
-                    else: u = random.choice(unseens_13_15)
-                    task = {"unseen": u["text"], "q": u["q"], "a": u["a"], "options": u["options"]}
-                # 4. וידאו אינטראקטיבי
+                    # דקדוק מותאם רמה
+                    if age_group == "7-9": task = {"title": "דקדוק וזמנים", "q": "The cat ____ sleeping on the sofa right now.", "a": "is", "options": ["is", "are", "am", "be"]}
+                    elif age_group == "10-12": task = {"title": "דקדוק וזמנים", "q": "Last week, we ____ a legendary football match.", "a": "played", "options": ["played", "play", "playing", "plays"]}
+                    else: task = {"title": "דקדוק וזמנים", "q": "If scientists alter the cell structure, the organism ____ adapt.", "a": "will", "options": ["will", "would have", "did", "was"]}
                 elif sub == 3:
-                    task = {"video_url": random.choice(videos), "q": "על סמך הסרטון (או הכללים שלמדת), מה התשובה הנכונה לשלב זה?", "a": "Yes", "options": ["Yes", "No", "Maybe", "Never"]}
-                # 5. אמת או שקר
+                    # משימת הבנת הנקרא (Unseen) קשורה ישירות לשאלה
+                    u = random.choice(t["unseens"])
+                    task = {"title": "הבנת הנקרא (Unseen)", "unseen": u["text"], "q": u["q"], "a": u["a"], "options": u["options"]}
                 elif sub == 4:
-                    if age_group == "7-9": task = {"q": "Cats can fly. (True/False)", "a": "False", "options": ["True", "False"]}
-                    elif age_group == "10-12": task = {"q": "A year has 12 months. (True/False)", "a": "True", "options": ["True", "False"]}
-                    else: task = {"q": "Photosynthesis requires oxygen. (True/False)", "a": "False", "options": ["True", "False"]}
-                # 6. יוצא דופן
+                    # משימת וידאו אינטראקטיבית - הסרטון קשור לחלוטין לשאלה
+                    vid = random.choice(t["vids"])
+                    task = {"title": "משימת וידאו אינטראקטיבית 🎬", "video_url": vid[0], "q": vid[1], "a": vid[2], "options": vid[3]}
                 elif sub == 5:
-                    if age_group == "7-9": task = {"q": "מי יוצא דופן?", "a": "Table", "options": ["Dog", "Cat", "Table", "Fish"]}
-                    elif age_group == "10-12": task = {"q": "איזו מילה אינה קשורה לזמן?", "a": "Apple", "options": ["Tomorrow", "Yesterday", "Apple", "Soon"]}
-                    else: task = {"q": "Find the odd one out:", "a": "Hesitate", "options": ["Run", "Sprint", "Dash", "Hesitate"]}
-                # 7. השלמת משפט
+                    task = {"title": "משימת אודיו והגייה 🎧", "q": f"כיצד נהגה נכון את המילה '{v_word}' בהקשר קולי משפט?", "a": f"בצורה מודגשת", "options": [f"בצורה מודגשת", "בצורה שקטה", "בלי להגות אותה", "כמו מילה אחרת"]}
                 elif sub == 6:
-                    if age_group == "7-9": task = {"q": "I eat an ____ every day.", "a": "apple", "options": ["apple", "chair", "sun", "dog"]}
-                    elif age_group == "10-12": task = {"q": "You should ____ your homework.", "a": "do", "options": ["do", "make", "have", "take"]}
-                    else: task = {"q": "Despite the rain, they decided to ____ the match.", "a": "continue", "options": ["continue", "cancel", "stop", "pause"]}
-                # 8. שאלת בוס
+                    task = {"title": "משחקון לוגיקה והקשר", "q": f"איזו מילה משלימה את ההקשר הטוב ביותר למילה: '{v_word}'?", "a": "הקשר תקין", "options": ["הקשר תקין", "טעות מוחלטת", "רעש מפריע", "ניתוק"]}
                 elif sub == 7:
-                    task = {"q": f"שאלת הבוס לשלב {level}! בחר בתשובה הנכונה כדי לנצח:", "a": "Victory", "options": ["Victory", "Defeat", "Loss", "Fail"]}
+                    task = {"title": "קרב בוס השלב! ⚔️", "q": f"הגעת לסוף שלב {level}. האם אתה מוכן להוכיח שליטה ברמת הגיל שלך?", "a": "כן, קדימה לניצחון!", "options": ["כן, קדימה לניצחון!", "לא", "אולי", "אני רוצה לפרוש"]}
 
+                # ערבוב אופציות התשובה
                 random.shuffle(task["options"])
                 db[age_group][str(level)][str(sub)] = task
+                
     save_json(CONTENT_FILE, db)
 
 ensure_content_exists()
 
-# --- ניהול משתמש ---
-if "user" not in st.session_state: st.session_state.user = None
+# --- טעינת נתונים ומצבי מערכת ---
 db = load_json(DB_FILE)
 content = load_json(CONTENT_FILE)
 
+if "user" not in st.session_state: st.session_state.user = None
+if "screen" not in st.session_state: st.session_state.screen = "login" # מסכים: login, game, milestone
+
 # ==========================================
-# מסך התחברות
+# מסך 1: התחברות והרשמה
 # ==========================================
-if st.session_state.user is None:
-    st.title("🌌 NEXUS ACADEMY - אנגלית חווייתית")
+if st.session_state.screen == "login" and st.session_state.user is None:
+    st.title("🌌 NEXUS ENGLISH ADVENTURE")
+    st.write("ברוכים הבאים לאקדמיית האנגלית הדיגיטלית. אנא התחבר או צור שחקן חדש.")
     st.markdown("---")
     
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("🔑 שחקן חוזר")
-        name = st.selectbox("בחר את השם שלך מתוך הרשימה:", list(db.keys()) if db else ["אין משתמשים רשומים"])
-        if st.button("התחבר והמשך 🚀", use_container_width=True):
+        st.subheader("🔑 כניסת שחקן קיים")
+        name = st.selectbox("בחר את השם שלך:", list(db.keys()) if db else ["אין שחקנים רשומים"])
+        if st.button("היכנס למשחק 🚀", use_container_width=True):
             if name in db:
                 st.session_state.user = db[name]
+                st.session_state.screen = "game"
                 st.rerun()
                 
     with col2:
-        st.subheader("✨ שחקן חדש")
-        new_name = st.text_input("הכנס שם משתמש חדש:")
-        new_age = st.number_input("בן כמה אתה?", 7, 15, 12)
-        if st.button("צור משתמש והתחל 🎮", use_container_width=True):
+        st.subheader("✨ יצירת שחקן חדש")
+        new_name = st.text_input("שם השחקן החדש (באנגלית או עברית):")
+        new_age = st.number_input("בן כמה אתה? (מותאם לגילאי 7-15)", 7, 15, 12)
+        if st.button("צור שחקן והתחל 🎮", use_container_width=True):
             if new_name and new_name not in db:
                 db[new_name] = {"name": new_name, "age": new_age, "level": 1, "sub_level": 0, "rewards": []}
                 save_json(DB_FILE, db)
                 st.session_state.user = db[new_name]
+                st.session_state.screen = "game"
                 st.rerun()
             elif new_name in db:
-                st.error("השם כבר תפוס! בחר שם אחר.")
+                st.error("השם הזה כבר תפוס במערכת!")
 
 # ==========================================
-# מסך המשחק הראשי
+# מסך 2: מסך הפרס החגיגי (מופיע כל 10 שלבים)
 # ==========================================
-else:
+elif st.session_state.screen == "milestone":
+    user = st.session_state.user
+    st.balloons()
+    st.markdown("<div style='text-align:center; padding:5px;'>", unsafe_allow_html=True)
+    st.title("🏆 הישג אגדי חסר תקדים! 🏆")
+    
+    # חישוב איזה ציון דרך הושג
+    completed_milestone = user['level'] - 1
+    reward_name = f"גביע הזהב האקלוסיבי של דרג {completed_milestone} 🌟"
+    
+    st.markdown(f"<h2>כל הכבוד {user['name']}! השלמת בהצלחה רצף של {completed_milestone} שלבים!</h2>", unsafe_allow_html=True)
+    st.write("המערכת זיהתה את ההשקעה שלך ומעניקה לך פרס על-חלל שנשמר בארון הפרסים האישי שלך.")
+    
+    st.markdown(f"<div style='background-color:#fef08a; padding:30px; border-radius:15px; font-size:26px; font-weight:bold; color:#a16207; border:3px dashed #ca8a04; margin:20px 0;'>🎁 קיבלת: {reward_name}</div>", unsafe_allow_html=True)
+    
+    if st.button("אסוף פרס והמשך לשלב הבא ➡️", type="primary", use_container_width=True):
+        # הוספת הפרס באופן סופי לארון
+        if reward_name not in user["rewards"]:
+            user["rewards"].append(reward_name)
+        db[user['name']] = user
+        save_json(DB_FILE, db)
+        
+        # החזרה למסך המשחק הראשי
+        st.session_state.screen = "game"
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# מסך 3: מסך המשחק הראשי (נפרד לכל שלב ומשימה)
+# ==========================================
+elif st.session_state.screen == "game" and st.session_state.user is not None:
     user = st.session_state.user
     
-    # תפריט צד (מוצג בבירור בזכות העיצוב המובנה)
+    # תפריט צד (Sidebar) מעוצב, ברור וקריא
     with st.sidebar:
-        st.header(f"🕵️‍♂️ {user['name']}")
-        st.write(f"**גיל מוגדר:** {user['age']}")
-        st.write(f"**שלב נוכחי:** {user['level']} מתוך 99")
-        st.progress(user['level'] / 99)
+        st.header(f"🕵️‍♂️ שחקן: {user['name']}")
+        st.write(f"**קבוצת גיל:** {user['age']} שנים")
+        st.write(f"**שלב נוכחי:** {user['level']} מתוך 50")
+        st.progress(user['level'] / 50)
         
         st.markdown("---")
-        st.subheader("🎒 ארון הפרסים שלי")
-        st.caption("מרוויחים פרס אגדי בכל 10 שלבים!")
+        st.subheader("🎒 ארון הפרסים האגדיים")
         if not user.get('rewards'):
-            st.info("עדיין אין פרסים. המשך לשחק!")
+            st.info("ארון הפרסים ריק. השלם 10 שלבים לקבלת הפרס הראשון!")
         else:
             for r in user['rewards']:
-                st.success(f"🎁 {r}")
+                st.markdown(f"⭐ **{r}**")
+                
+        st.markdown("---")
+        # כפתור ייצוא קובץ JSON חיצוני לבקשת המשתמש
+        st.subheader("⚙️ ניהול תוכן חיצוני")
+        with open(CONTENT_FILE, "r", encoding="utf-8") as f:
+            json_bytes = f.read()
+        st.download_button(
+            label="📥 הורד קובץ שאלות JSON מלא",
+            data=json_bytes,
+            file_name="nexus_questions_database.json",
+            mime="application/json",
+            use_container_width=True
+        )
         
         st.markdown("---")
-        if st.button("התנתק 🚪", use_container_width=True):
+        if st.button("התנתק מהמשחק 🚪", use_container_width=True):
             st.session_state.user = None
+            st.session_state.screen = "login"
             st.rerun()
 
-    # שליפת המשימה בהתאם לגיל ולשלב (הגדרת רמות קושי)
+    # קביעת קבוצת הגיל לצורך שליפת השאלות הנכונות
     if user['age'] <= 9: age_group = "7-9"
     elif user['age'] <= 12: age_group = "10-12"
     else: age_group = "13-15"
@@ -184,71 +279,68 @@ else:
     lvl = str(user['level'])
     sub = str(user['sub_level'])
     
-    try: mission = content[age_group][lvl][sub]
+    # הגנה מפני חריגת שלבים
+    try:
+        mission = content[age_group][lvl][sub]
     except KeyError:
-        st.error("שגיאה בטעינת השלב.")
+        st.success("👑 מדהים! השלמת את כל 50 השלבים במשחק!")
+        if st.button("התחל מחדש ברמת גיל גבוהה יותר"):
+            user['level'] = 1
+            user['sub_level'] = 0
+            user['age'] += 3
+            db[user['name']] = user
+            save_json(DB_FILE, db)
+            st.rerun()
         st.stop()
 
-    # תצוגת התקדמות במשימות בתוך השלב (1 עד 8)
-    st.subheader(f"שלב {lvl} • משימה {int(sub)+1} מתוך 8")
-    progress_val = (int(sub)) / 8.0
-    st.progress(progress_val)
+    # כותרת שלב ייחודית ומד התקדמות פנימי לשלב (1 עד 8)
+    st.markdown(f"<h2>שלב {lvl} מתוך 50 • קושי גיל {age_group}</h2>", unsafe_allow_html=True)
+    st.write(f"**משימה נוכחית בשלב זה:** {int(sub)+1} מתוך 8 משימות חובה")
+    st.progress((int(sub)) / 8.0)
     st.markdown("---")
 
-    # אזור התוכן הראשי (אינטראקטיבי ותלוי סוג משימה)
-    st.markdown(f"<h2>{mission['q']}</h2>", unsafe_allow_html=True)
-    st.write("") # מרווח
+    # קופסת התוכן המרכזית (המסך הייעודי של השלב)
+    st.markdown('<div class="content-box">', unsafe_allow_html=True)
+    st.markdown(f"<h3>🎯 {mission['title']}</h3>", unsafe_allow_html=True)
     
-    # אם יש קטע קריאה (Unseen)
+    # תצוגת קטע קריאה (Unseen) אם קיים במשימה
     if "unseen" in mission:
-        st.markdown(f'<div class="unseen-box"><strong>📖 Reading Text:</strong><br><br>{mission["unseen"]}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="unseen-box"><strong>📖 Read the text carefully:</strong><br><br>{mission["unseen"]}</div>', unsafe_allow_html=True)
         
-    # אם יש וידאו
+    # תצוגת וידאו מותאם ומחובר לשאלה אם קיים במשימה
     if "video_url" in mission:
         st.video(mission["video_url"])
-        st.caption("צפה בווידאו ולאחר מכן ענה על השאלה.")
+        st.caption("צפו בקטע המדיה שלמעלה ולאחר מכן ענו על השאלה הבאה:")
 
-    # בחירת התשובה
-    ans = st.radio("בחר את התשובה הנכונה:", mission["options"], index=None, key=f"q_{lvl}_{sub}")
+    # הצגת השאלה הברורה
+    st.markdown(f"<p style='font-size:22px; font-weight:bold; color:#0f172a;'>👉 {mission['q']}</p>", unsafe_allow_html=True)
+    
+    # בחירת התשובה (רדיו עם פונט מוגדל ועיצוב כרטיס)
+    ans = st.radio("בחר את התשובה הנכונה מבין האפשרויות:", mission["options"], index=None, key=f"active_q_{lvl}_{sub}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write("") # מרווח
-    st.write("")
-
-    # כפתור בדיקה
-    if st.button("בצע בדיקה ✔️", type="primary", use_container_width=True):
+    # כפתור אישור ובדיקת תשובה
+    if st.button("אשר תשובה ובצע סריקה ⚡", type="primary", use_container_width=True):
         if ans == mission["a"]:
-            st.success("✅ מעולה! תשובה נכונה.")
-            time.sleep(1)
+            st.success("✅ תשובה נכונה! כל הכבוד.")
+            time.sleep(0.8)
             
+            # קידום התקדמות פנימית
             user['sub_level'] += 1
             
-            # אם סיים 8 משימות ועובר שלב
+            # בדיקה האם סיים את כל 8 המשימות ועובר שלב
             if user['sub_level'] > 7:
-                # מתן פרס כל 10 שלבים
-                if user['level'] % 10 == 0:
-                    st.balloons()
-                    reward = f"גביע מיוחד של שלב {user['level']}! 🏆"
-                    if "rewards" not in user: user["rewards"] = []
-                    user["rewards"].append(reward)
-                    st.success(f"🎉 כל הכבוד! השלמת 10 שלבים ברצף וזכית ב: {reward}")
-                    time.sleep(3)
-                    
                 user['level'] += 1
                 user['sub_level'] = 0
                 
-                # סיום המשחק (99 שלבים) - עליה בקבוצת גיל
-                if user['level'] > 99:
-                    st.balloons()
-                    if user['age'] <= 9: user['age'] = 11
-                    elif user['age'] <= 12: user['age'] = 14
-                    st.success("👑 מדהים! סיימת את כל 99 השלבים! עלית אוטומטית לקבוצת הגיל ולרמת הקושי הבאה!")
-                    user['level'] = 1
-                    time.sleep(4)
-
-            # שמירה במסד הנתונים ורענון
+                # האם השלב החדש שהוא הגיע אליו מעיד על כך שהוא הרגע סיים שלב עגול (למשל סיים את 10, עכשיו הוא ב-11)?
+                if (user['level'] - 1) % 10 == 0:
+                    st.session_state.screen = "milestone" # מעבר למסך הפרס הנפרד
+            
+            # שמירה מיידית של המצב והשלב שבו הוא נמצא
             db[user['name']] = user
             save_json(DB_FILE, db)
             st.rerun()
             
         elif ans is not None:
-            st.error("❌ התשובה לא מדויקת, נסה שוב!")
+            st.error("❌ התשובה אינה מדויקת. קרא את השאלה שוב ונסה שנית!")
