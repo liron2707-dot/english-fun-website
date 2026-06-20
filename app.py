@@ -553,11 +553,14 @@ else:
         save_db(st.session_state.user_db)
         
     # חישוב הדרגה לפי ה-XP
-    rank = "טירון 🥉"
-    if st.session_state.xp >= 1000: rank = "אגדה 👑"
-    elif st.session_state.xp >= 600: rank = "אלוף 🏆"
-    elif st.session_state.xp >= 300: rank = "מקצוען 🥇"
-    elif st.session_state.xp >= 100: rank = "מתקדם 🥈"
+    # במקום הקוד הקודם, תכתוב את זה:
+    xp_val = st.session_state.get('xp', 0)
+
+    if xp_val >= 1000: rank = "אגדה 👑"
+    elif xp_val >= 600: rank = "אלוף 🏆"
+    elif xp_val >= 300: rank = "מקצוען 🥇"
+    elif xp_val >= 100: rank = "מתקדם 🥈"
+    else: rank = "טירון 🥉"
 
     with st.sidebar:
         st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
