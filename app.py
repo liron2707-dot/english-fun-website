@@ -15,34 +15,23 @@ USER_DB_FILE = "users_db.json"
 # מאגר התמונות האמיתיות לפרסים ולקלפים (הורחב משמעותית!)
 # ==========================================
 PRIZE_IMAGES = {
-    "🔥 קלף פוקימון Charizard VMAX": "https://images.pokemontcg.io/swsh3/20_hires.png",
-    "⚡ קלף פוקימון Pikachu Gold": "https://images.pokemontcg.io/ex13/104_hires.png",
+    "🍦 גלידת קצפת ענקית": "https://images.unsplash.com/photo-1563805042-7684c8a9e9cb?q=80&w=800",
+    "🐉 דרקון אש חמוד": "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800",
+    "🔥 קלף פוקימון Charizard VMAX נדיר!": "https://images.pokemontcg.io/swsh3/20_hires.png",
+    "⚡ קלף פוקימון Pikachu Gold Star": "https://images.pokemontcg.io/ex13/104_hires.png",
     "🌊 קלף פוקימון Blastoise Holographic": "https://images.pokemontcg.io/base1/2_hires.png",
-    "⚽ קלף מסי - Match Attax Rare": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Lionel-Messi-Argentina-2022-FIFA-World-Cup_%28cropped%29.jpg",
-    "🏆 קלף רונאלדו - Adrenalyn XL": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg",
-    "🌟 מארז פרימיום Match Attax 2025": "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg",
-    "🎁 תיבת מגה (Mega Box) ברולסטארס": "https://upload.wikimedia.org/wikipedia/commons/a/af/Treasure_chest_open_icon.svg",
-    "🌵 סקין ספייק - ברולסטארס": "https://upload.wikimedia.org/wikipedia/commons/5/53/Cactus_icon.svg",
-    "🦅 סקין קרואו - ברולסטארס": "https://upload.wikimedia.org/wikipedia/commons/3/30/Crow_icon.svg",
-    "💎 קופסת יהלומים ענקית": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Diamond_icon.svg",
-    "📱 אייפון 15 פרו מקס": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
-    "🎮 סוני פלייסטיישן 5": "https://upload.wikimedia.org/wikipedia/commons/3/39/PS5_logo.svg"
+    "⚽ חפיסת קלפי Adrenalyn XL זהב": "https://m.media-amazon.com/images/I/81xU+aYmC5L._AC_SX679_.jpg",
+    "🏆 קלף מוזהב נדיר Match Attax": "https://m.media-amazon.com/images/I/81p+kZ1O8nL._AC_SX679_.jpg",
+    "🌟 מארז קומבו Match Attax 2025!": "https://m.media-amazon.com/images/I/71Y+z4qZ-jL._AC_SX679_.jpg",
+    "📱 אייפון 15 פרו מקס אמיתי!": "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=800",
+    "🎮 סוני פלייסטיישן 5": "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800",
+    "🦸‍♂️ קלף ספיידרמן נדיר מארוול": "https://images.unsplash.com/photo-1608889175123-8ee362201f81?q=80&w=800",
+    "🦄 בובת חד קרן ענקית": "https://images.unsplash.com/photo-1559715541-5daf8a0296d0?q=80&w=800",
+    "🏎️ מכונית על למבורגיני": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=800",
+    "👑 כתר יהלומים של מלך האנגלית": "https://images.unsplash.com/photo-1595986630530-969786b19b4d?q=80&w=800",
+    "📼 קלטת מוזיקה נדירה של Stranger Things": "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?q=80&w=800",
+    "💎 תיבת אוצר מסתורית": "https://images.unsplash.com/photo-1618842676088-c4d48a6a7c9d?q=80&w=800"
 }
-
-ALL_SHOP_ITEMS = [
-    {"name": "🔥 קלף פוקימון Charizard VMAX", "cost": 150, "type": "stars"},
-    {"name": "⚡ קלף פוקימון Pikachu Gold", "cost": 150, "type": "stars"},
-    {"name": "🌊 קלף פוקימון Blastoise Holographic", "cost": 150, "type": "stars"},
-    {"name": "⚽ קלף מסי - Match Attax Rare", "cost": 250, "type": "stars"},
-    {"name": "🏆 קלף רונאלדו - Adrenalyn XL", "cost": 250, "type": "stars"},
-    {"name": "🌟 מארז פרימיום Match Attax 2025", "cost": 300, "type": "stars"},
-    {"name": "🎁 תיבת מגה (Mega Box) ברולסטארס", "cost": 300, "type": "xp"},
-    {"name": "🌵 סקין ספייק - ברולסטארס", "cost": 500, "type": "xp"},
-    {"name": "🦅 סקין קרואו - ברולסטארס", "cost": 500, "type": "xp"},
-    {"name": "💎 קופסת יהלומים ענקית", "cost": 800, "type": "xp"},
-    {"name": "📱 אייפון 15 פרו מקס", "cost": 1500, "type": "xp"},
-    {"name": "🎮 סוני פלייסטיישן 5", "cost": 2000, "type": "xp"}
-]
 
 # דמויות לבחירה (Avatars)
 AVATARS = ["😎", "🦄", "🚀", "🐱‍👤", "👑", "🐉", "🤖", "🦊"]
@@ -325,27 +314,38 @@ if 'db_generated' not in st.session_state:
         
         questions = []
         for eng, heb in words:
+            # שאלת תרגום לאנגלית
             distractors = random.sample([h for h in all_hebrew if h != heb], 3)
             options = distractors + [heb]
             random.shuffle(options)
             
             if is_toddler:
+                # הוספת התמונות/אימוג'ים לאופציות ולתשובה הנכונה
                 options_with_pics = [f"{h} {toddler_pics.get(heb_to_eng.get(h, ''), '✨')}" for h in options]
                 correct_with_pic = f"{heb} {toddler_pics.get(eng, '✨')}"
-                q_text1 = f"איזו תמונה מתאימה למילה באנגלית: **{eng}**?"
-                hint1 = f"💡 רמז קסם: התשובה בעברית מתחילה באות '{heb[0]}'."
+                
+                # עונה בדיוק על הדרישה: שאלה במשפט בעברית עם המילה הנדרשת באנגלית, תשובות בעברית עם תמונה
+                q_text1 = f"ילדים אלופים, מה הפירוש של המילה באנגלית '{eng}'?"
+                hint1 = f"💡 רמז קסם: התשובה מתחילה באות '{heb[0]}'."
+                audio_he1 = f"מה הפירוש של המילה באנגלית {eng}?"
+                audio_en1 = eng
+                
                 questions.append({
                     "q": q_text1, "correct": correct_with_pic, "options": options_with_pics, "hint": hint1,
-                    "audio_he": f"איזו תמונה מתאימה למילה באנגלית {eng}?", "audio_en": eng
+                    "audio_he": audio_he1, "audio_en": audio_en1
                 })
             else:
                 q_text1 = f"What is the meaning of the word '{eng}'?"
                 hint1 = f"💡 רמז סודי: התשובה בעברית מתחילה באות '{heb[0]}'."
+                audio_he1 = ""
+                audio_en1 = q_text1
+                
                 questions.append({
                     "q": q_text1, "correct": heb, "options": options, "hint": hint1,
-                    "audio_he": "", "audio_en": q_text1
+                    "audio_he": audio_he1, "audio_en": audio_en1
                 })
-                
+            
+            # שאלת השלמה לאנגלית (אופציות באנגלית)
             distractors_eng = random.sample([w[0] for w in words if w[0] != eng], 3)
             options_eng = distractors_eng + [eng]
             random.shuffle(options_eng)
@@ -353,64 +353,69 @@ if 'db_generated' not in st.session_state:
             if is_toddler:
                 options_eng_with_pics = [f"{e} {toddler_pics.get(e, '✨')}" for e in options_eng]
                 correct_eng_with_pic = f"{eng} {toddler_pics.get(eng, '✨')}"
+                
+                # עונה בדיוק על הדרישה - שאלה בעברית לתשובה באנגלית
                 q_text2 = f"מי יודע איך אומרים באנגלית את המילה '{heb}'?"
                 hint2 = f"💡 רמז קסם: התשובה באנגלית מתחילה באות '{eng[0]}'."
+                audio_he2 = f"איך אומרים {heb} באנגלית?"
+                audio_en2 = eng
+                
                 questions.append({
                     "q": q_text2, "correct": correct_eng_with_pic, "options": options_eng_with_pics, "hint": hint2,
-                    "audio_he": f"איך אומרים {heb} באנגלית?", "audio_en": eng
+                    "audio_he": audio_he2, "audio_en": audio_en2
                 })
             else:
                 q_text2 = f"How do you say '{heb}' in English?"
                 hint2 = f"💡 רמז סודי: התשובה באנגלית מתחילה באות '{eng[0]}'."
+                audio_he2 = ""
+                audio_en2 = q_text2
+                
                 questions.append({
                     "q": q_text2, "correct": eng, "options": options_eng, "hint": hint2,
-                    "audio_he": "", "audio_en": q_text2
+                    "audio_he": audio_he2, "audio_en": audio_en2
                 })
-
+            
         random.shuffle(questions)
         return questions[:amount]
 
-    # אנסינים מתקדמים הדורשים הסקת מסקנות
     def generate_dynamic_unseens(age_group, amount):
         unseens = []
         names = ["Danny", "Maya", "Tom", "Sarah", "David", "Anna", "Ben", "Emma"]
+        places_7_9 = [("zoo", "animals"), ("park", "trees"), ("beach", "shells"), ("farm", "cows")]
+        places_10_12 = [("museum", "paintings"), ("stadium", "players"), ("concert", "singers"), ("library", "books")]
+        places_13_15 = [("foreign country", "tourists"), ("technology exhibition", "robots"), ("historic city", "monuments")]
+        
         for _ in range(amount):
             name = random.choice(names)
             if age_group == "7-9":
-                situations = [
-                    ("There were dark grey clouds and water was falling from the sky.", "Rainy", ["Rainy", "Sunny", "Snowy", "Windy"]),
-                    ("The sky was bright blue and everyone was wearing sunglasses.", "Sunny", ["Sunny", "Rainy", "Cold", "Snowy"])
-                ]
-                sit = random.choice(situations)
-                passage = f"{name} looked out the window. {sit[0]} {name} decided what to wear."
-                q1 = {"q": "What was the weather like?", "correct": sit[1], "options": sit[2], "hint": "💡 רמז: תחשבו איזו מילה מתארת את מה שקורה בחוץ."}
-                unseens.append({"passage": passage, **q1})
-
+                place, item = random.choice(places_7_9)
+                num = random.randint(2, 10)
+                passage = f"Yesterday, {name} went to the {place}. It was a very sunny day. {name} saw {num} beautiful {item} there. {name} was very happy."
+                q1 = {"q": f"Where did {name} go?", "correct": f"To the {place}", "options": [f"To the {place}", "To the school", "To the hospital", "To the shop"], "hint": "💡 רמז: מצאו את המשפט הראשון בטקסט, שם רשום לאן הדמות הלכה."}
+                q2 = {"q": f"How many {item} did {name} see?", "correct": str(num), "options": [str(num), str(num+1), "One", "Zero"], "hint": "💡 רמז: חפשו את המספר המדויק שמופיע בטקסט."}
+                unseens.extend([{"passage": passage, **q1}, {"passage": passage, **q2}])
+                
             elif age_group == "10-12":
-                situations = [
-                    ("He looked at the clock, grabbed his bag, and ran as fast as he could to the bus stop, but the yellow vehicle was already gone.", "He was late for school"),
-                    ("Her stomach was making loud noises and she couldn't stop thinking about the big sandwich in her bag.", "She was hungry")
-                ]
-                sit = random.choice(situations)
-                passage = f"It was 8:00 AM. {sit[0]} It was going to be a long day."
-                q1 = {"q": "What is the actual problem here?", "correct": sit[1], "options": [sit[1], "They wanted to sleep", "They lost a phone", "They were sick"], "hint": "💡 רמז: קראו בין השורות. מה קרה באמת?"}
-                unseens.append({"passage": passage, **q1})
-
+                place, item = random.choice(places_10_12)
+                friend = random.choice([n for n in names if n != name])
+                passage = f"{name} and {friend} decided to visit the {place} last weekend. They spent three hours looking at the amazing {item}. After that, they were very hungry, so they bought a large pizza."
+                q1 = {"q": f"Who did {name} go with to the {place}?", "correct": friend, "options": [friend, "Mom", "A teacher", "Nobody"], "hint": "💡 רמז: מי מוזכר במשפט הראשון יחד עם הדמות המרכזית?"}
+                q2 = {"q": f"What did they do because they were hungry?", "correct": "Bought a large pizza", "options": ["Bought a large pizza", "Went to sleep", "Drank water", f"Looked at {item}"], "hint": "💡 רמז: קראו את המשפט האחרון בטקסט (After that...)."}
+                unseens.extend([{"passage": passage, **q1}, {"passage": passage, **q2}])
+                
             elif age_group == "13-15":
-                topics = [
-                    ("Despite their exhaustion and aching muscles, the athletes kept pushing their limits until the final whistle.", "They were highly determined.", ["They were highly determined.", "They wanted to quit.", "They were very lazy.", "They didn't care about the game."]),
-                    ("The sudden software update caused massive disruptions across the company's network, leaving technicians scrambling for hours to restore order.", "The update was highly problematic.", ["The update was highly problematic.", "The update improved performance.", "The technicians were bored.", "The network was untouched."])
-                ]
-                topic = random.choice(topics)
-                passage = f"It was a day full of unexpected events. {topic[0]}"
-                q1 = {"q": "What can be inferred from this situation?", "correct": topic[1], "options": topic[2], "hint": "💡 רמז: הסיקו מסקנה (Inference) מתוך הפעולות שמתוארות."}
-                unseens.append({"passage": passage, **q1})
-        random.shuffle(unseens)
-        return unseens[:amount]
+                place, item = random.choice(places_13_15)
+                years = random.randint(3, 8)
+                passage = f"Traveling to a {place} can be a life-changing experience. {name}, a young traveler, spent {years} months saving money for this journey. During the trip, {name} was fascinated by the incredible {item} and learned a lot about the local culture and traditions."
+                q1 = {"q": f"Why is {name}'s experience described as significant?", "correct": "It was a life-changing experience.", "options": ["It was a life-changing experience.", "It was extremely boring.", "It took too much time.", "It was a terrible mistake."], "hint": "💡 רמז: קראו את תחילת הפסקה כדי למצוא את התיאור של החוויה."}
+                q2 = {"q": f"How long did {name} save money for the journey?", "correct": f"{years} months", "options": [f"{years} months", f"{years} years", "One week", "A few days"], "hint": "💡 רמז: חפשו את המספר המציין את משך הזמן של חיסכון הכסף."}
+                unseens.extend([{"passage": passage, **q1}, {"passage": passage, **q2}])
+                
+        return unseens
 
+    # --- מילים ודקדוק לכל קבוצות הגיל ---
     raw_vocab_4_6 = "Dog:כלב|Cat:חתול|Sun:שמש|Water:מים|Boy:ילד|Girl:ילדה|Red:אדום|Blue:כחול|Green:ירוק|Yellow:צהוב|One:אחד|Two:שתיים|Three:שלוש|Four:ארבע|Five:חמש|Apple:תפוח|Banana:בננה|Car:מכונית|Ball:כדור|Yes:כן|No:לא|Hello:שלום|Bye:להתראות|Mom:אמא|Dad:אבא|Eye:עין|Nose:אף|Mouth:פה|Ear:אוזן|Hand:יד|Leg:רגל|Big:גדול|Small:קטן|Happy:שמח|Sad:עצוב|Hot:חם|Cold:קר|Milk:חלב|Tree:עץ|Flower:פרח|Bird:ציפור|Fish:דג|House:בית|Door:דלת|Window:חלון|Bed:מיטה|Morning:בוקר|Night:לילה"
     raw_vocab_7_9 = "Apple:תפוח|Dog:כלב|Cat:חתול|Sun:שמש|Water:מים|Moon:ירח|Star:כוכב|Fish:דג|Bird:ציפור|Cow:פרה|Horse:סוס|Tree:עץ|Flower:פרח|Car:מכונית|Bus:אוטובוס|Train:רכבת|House:בית|Door:דלת|Window:חלון|Table:שולחן|Chair:כיסא|Book:ספר|Pen:עט|School:בית ספר|Teacher:מורה|Mother:אמא|Father:אבא|Brother:אח|Sister:אחות|Baby:תינוק|Hand:יד|Foot:רגל|Eye:עין|Ear:אוזן|Nose:אף|Mouth:פה|Head:ראש|Red:אדום|Blue:כחול|Green:ירוק|Yellow:צהוב|Black:שחור|White:לבן|Pink:ורוד|Orange:כתום|Brown:חום|Happy:שמח|Sad:עצוב|Big:גדול|Small:קטן|Hot:חם|Cold:קר|Good:טוב|Bad:רע|Fast:מהיר|Slow:איטי|Play:לשחק|Jump:לקפוץ|Run:לרוץ|Sleep:לישון|Eat:לאכול|Drink:לשתות|Milk:חלב|Bread:לחם|Cheese:גבינה|Meat:בשר|Cake:עוגה|Candy:סוכריה|Toy:צעצוע|Ball:כדור|Park:פארק|Zoo:גן חיות"
-    
     grammar_7_9 = []
     base_templates_7_9 = [
         ("I", "am", ["is", "are", "be"], "a good student."),
@@ -427,9 +432,8 @@ if 'db_generated' not in st.session_state:
         options = [ans] + wrong
         random.shuffle(options)
         grammar_7_9.append({"q": f"{subj} ___ {rest}", "correct": ans, "options": options, "hint": "💡 רמז דקדוקי: He, She, It מקבלים תמיד 'is'. I מקבל 'am'. We, You, They מקבלים 'are'."})
-
-    raw_vocab_10_12 = "Yesterday:אתמול|Tomorrow:מחר|Today:היום|Always:תמיד|Never:אף פעם|Sometimes:לפעמים|Usually:בדרך כלל|Beautiful:יפה|Ugly:מכוער|Smart:חכם|Stupid:טיפש|Clean:נקי|Dirty:מלוכלך|Easy:קל|Hard:קשה|Heavy:כבד|Light:קל|Strong:חזק|Weak:חלש|Rich:עשיר|Poor:עני|Early:מוקדם|Late:מאוחר|Right:נכון|Wrong:לא נכון|Friend:חבר|Enemy:אויב|Neighbor:שכן|Question:שאלה|Answer:תשובה|Word:מילה|Sentence:משפט|Month:חודש|Year:שנה|Spring:אביב|Summer:קיץ|Autumn:סתיו|Winter:חורף|Holiday:חג|Vacation:חופשה|Money:כסף|Buy:לקנות|Sell:למכור|Pay:לשלם|Clothes:בגדים|Shirt:חולצה|Pants:מכנסיים|Dress:שמלה|Shoes:נעליים|Weather:מזג אוויר|Cloud:ענן|Storm:סערה|River:נהר|Sea:ים|Mountain:הר|Forest:יער|Animal:חיה|Safe:בטוח|Help:לעזור|Work:לעבוד|Job:עבודה|Doctor:רופא|Police:משטרה"
     
+    raw_vocab_10_12 = "Yesterday:אתמול|Tomorrow:מחר|Today:היום|Always:תמיד|Never:אף פעם|Sometimes:לפעמים|Usually:בדרך כלל|Beautiful:יפה|Ugly:מכוער|Smart:חכם|Stupid:טיפש|Clean:נקי|Dirty:מלוכלך|Easy:קל|Hard:קשה|Heavy:כבד|Light:קל|Strong:חזק|Weak:חלש|Rich:עשיר|Poor:עני|Early:מוקדם|Late:מאוחר|Right:נכון|Wrong:לא נכון|Friend:חבר|Enemy:אויב|Neighbor:שכן|Question:שאלה|Answer:תשובה|Word:מילה|Sentence:משפט|Month:חודש|Year:שנה|Spring:אביב|Summer:קיץ|Autumn:סתיו|Winter:חורף|Holiday:חג|Vacation:חופשה|Money:כסף|Buy:לקנות|Sell:למכור|Pay:לשלם|Clothes:בגדים|Shirt:חולצה|Pants:מכנסיים|Dress:שמלה|Shoes:נעליים|Weather:מזג אוויר|Cloud:ענן|Storm:סערה|River:נהר|Sea:ים|Mountain:הר|Forest:יער|Animal:חיה|Safe:בטוח|Help:לעזור|Work:לעבוד|Job:עבודה|Doctor:רופא|Police:משטרה"
     grammar_10_12 = []
     base_templates_10_12 = [
         ("Yesterday, I ___ to the beautiful park.", "went", "go", "going", "goes"),
@@ -444,9 +448,8 @@ if 'db_generated' not in st.session_state:
         options = [v_past, v_pres, v_ing, v_s]
         random.shuffle(options)
         grammar_10_12.append({"q": sentence, "correct": v_past, "options": options, "hint": "💡 רמז דקדוקי: שימו לב למילות הזמן (Yesterday, Last, Ago)! הן מצביעות על זמן עבר (Past Simple)."})
-
-    raw_vocab_13_15 = "Environment:סביבה|Pollution:זיהום|Climate:אקלים|Discover:לגלות|Invent:להמציא|Technology:טכנולוגיה|Society:חברה|Culture:תרבות|Tradition:מסורת|Government:ממשלה|Election:בחירות|Law:חוק|Crime:פשע|Punishment:עונש|Justice:צדק|Peace:שלום|War:מלחמה|Army:צבא|Soldier:חייל|Weapon:נשק|Economy:כלכלה|Business:עסק|Company:חברה|Factory:מפעל|Industry:תעשייה|Trade:סחר|Import:ייבוא|Export:ייצוא|Profit:רווח|Loss:הפסד|Success:הצלחה|Failure:כישלון|Challenge:אתגר|Opportunity:הזדמנות|Advantage:יתרון|Disadvantage:חיסרון|Benefit:תועלת|Harm:נזק|Risk:סיכון|Protect:להגן|Destroy:להרוס|Create:ליצור|Improve:לשפר|Develop:לפתח|Grow:לגדול/לצמוח|Reduce:להפחית|Increase:להגדיל|Measure:למדוד|Compare:להשוות|Explain:להסביר|Describe:לתאר|Argue:להתווכח|Agree:להסכים|Disagree:לא להסכים|Opinion:דעה|Fact:עובדה|Evidence:ראיה|Prove:להוכיח|Suggest:להציע|Advise:לייעץ|Recommend:להמליץ|Decide:להחליט|Choose:לבחור|Result:תוצאה|Cause:גורם|Reason:סיבה|Purpose:מטרה|Goal:יעד|Achieve:להשיג|Succeed:להצליח|Fail:להיכשל|Effort:מאמץ|Energy:אנרגיה"
     
+    raw_vocab_13_15 = "Environment:סביבה|Pollution:זיהום|Climate:אקלים|Discover:לגלות|Invent:להמציא|Technology:טכנולוגיה|Society:חברה|Culture:תרבות|Tradition:מסורת|Government:ממשלה|Election:בחירות|Law:חוק|Crime:פשע|Punishment:עונש|Justice:צדק|Peace:שלום|War:מלחמה|Army:צבא|Soldier:חייל|Weapon:נשק|Economy:כלכלה|Business:עסק|Company:חברה|Factory:מפעל|Industry:תעשייה|Trade:סחר|Import:ייבוא|Export:ייצוא|Profit:רווח|Loss:הפסד|Success:הצלחה|Failure:כישלון|Challenge:אתגר|Opportunity:הזדמנות|Advantage:יתרון|Disadvantage:חיסרון|Benefit:תועלת|Harm:נזק|Risk:סיכון|Protect:להגן|Destroy:להרוס|Create:ליצור|Improve:לשפר|Develop:לפתח|Grow:לגדול/לצמוח|Reduce:להפחית|Increase:להגדיל|Measure:למדוד|Compare:להשוות|Explain:להסביר|Describe:לתאר|Argue:להתווכח|Agree:להסכים|Disagree:לא להסכים|Opinion:דעה|Fact:עובדה|Evidence:ראיה|Prove:להוכיח|Suggest:להציע|Advise:לייעץ|Recommend:להמליץ|Decide:להחליט|Choose:לבחור|Result:תוצאה|Cause:גורם|Reason:סיבה|Purpose:מטרה|Goal:יעד|Achieve:להשיג|Succeed:להצליח|Fail:להיכשל|Effort:מאמץ|Energy:אנרגיה"
     grammar_13_15 = []
     base_templates_13_15 = [
         ("give", "up", "להיכנע/לוותר", "You should never give ___ on your dreams and goals."),
@@ -460,7 +463,7 @@ if 'db_generated' not in st.session_state:
         distractors = random.sample([p for p in ["in", "on", "at", "over", "down", "away", "up", "off", "out", "to", "of"] if p != prep], 3)
         options = [prep] + distractors
         random.shuffle(options)
-        grammar_13_15.append({"q": f"Choose the correct preposition: {sentence}", "correct": prep, "options": options, "hint": f"💡 רמז סודי: השילוב של הפועל '{verb}' עם מילת היחס הנכונה יוצר את המשמעות '{mean}'."})
+        grammar_13_15.append({"q": f"Choose the correct preposition to complete the phrasal verb: {sentence}", "correct": prep, "options": options, "hint": f"💡 רמז סודי: מדובר ב-Phrasal Verb. השילוב של הפועל '{verb}' יחד עם מילת היחס הנכונה יוצר את המשמעות '{mean}'."})
 
     def build_massive_pool(raw_vocab, grammar_list, age):
         pool = []
@@ -470,7 +473,7 @@ if 'db_generated' not in st.session_state:
             pool.extend(grammar_list)
             pool.extend(generate_dynamic_unseens(age, 30))
         random.shuffle(pool)
-
+        
         final_pool = []
         q_id = 1
         for item in pool:
@@ -478,16 +481,16 @@ if 'db_generated' not in st.session_state:
             item_copy["id"] = q_id
             final_pool.append(item_copy)
             q_id += 1
-
+            
         while len(final_pool) < 400:
             extra = random.choice(pool).copy()
             extra["id"] = q_id
             random.shuffle(extra["options"])
             final_pool.append(extra)
             q_id += 1
-
-        return final_pool[:400]
-
+            
+        return final_pool[:400] 
+        
     st.session_state.questions_by_age = {
         "4-6": build_massive_pool(raw_vocab_4_6, [], "4-6"),
         "7-9": build_massive_pool(raw_vocab_7_9, grammar_7_9, "7-9"),
@@ -495,6 +498,7 @@ if 'db_generated' not in st.session_state:
         "13-15": build_massive_pool(raw_vocab_13_15, grammar_13_15, "13-15")
     }
     st.session_state.db_generated = True
+
 # ==========================================
 # 2. מערכת התחברות חכמה ושמירה אוטומטית (נשמרת גם כשהדפדפן נסגר!)
 # ==========================================
