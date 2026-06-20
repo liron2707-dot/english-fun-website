@@ -313,8 +313,6 @@ def speak_text(text_en, text_he=""):
 # ==========================================
 if 'db_generated' not in st.session_state:
     
-    if 'db_generated' not in st.session_state:
-
     def generate_vocab_questions(raw_string, amount, is_toddler=False):
         words = []
         for pair in raw_string.split('|'):
