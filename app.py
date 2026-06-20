@@ -547,19 +547,33 @@ if st.session_state.logged_in_user is None:
 # 3. מסך המשחק הראשי 
 # ==========================================
 else:
+    # --- שומר סף: מוודא שכל המשתנים קיימים בזיכרון ---
+    u = st.session_state.logged_in_user
+    db_data = st.session_state.user_db.get(u, {})
+    
+    # רשימת המשתנים שחייבים להיות קיימים
+    keys = ["xp", "stars", "score", "streak", "avatar", "current_stage", "current_q_index", "my_prizes", "age_level"]
+    for key in keys:
+        if key not in st.session_state:
+            st.session_state[key] = db_data.get(key, 0 if key not in ["avatar", "age_level"] else "😎")
+
+    # פונקציית סנכרון
     def sync_data():
-        u = st.session_state.logged_in_user
-        st.session_state.user_db[u].update({"age_level": st.session_state.age_level, "score": st.session_state.score, "stars": st.session_state.stars, "xp": st.session_state.xp, "current_stage": st.session_state.current_stage, "current_q_index": st.session_state.current_q_index, "streak": st.session_state.streak, "my_prizes": st.session_state.my_prizes, "last_login": datetime.now().strftime("%Y-%m-%d")})
+        st.session_state.user_db[u].update({
+            "age_level": st.session_state.age_level, "score": st.session_state.score, 
+            "stars": st.session_state.stars, "xp": st.session_state.xp, 
+            "current_stage": st.session_state.current_stage, "current_q_index": st.session_state.current_q_index, 
+            "streak": st.session_state.streak, "my_prizes": st.session_state.my_prizes, 
+            "avatar": st.session_state.avatar
+        })
         save_db(st.session_state.user_db)
         
-    # חישוב הדרגה לפי ה-XP
-    # במקום הקוד הקודם, תכתוב את זה:
-    xp_val = st.session_state.get('xp', 0)
-
-    if xp_val >= 1000: rank = "אגדה 👑"
-    elif xp_val >= 600: rank = "אלוף 🏆"
-    elif xp_val >= 300: rank = "מקצוען 🥇"
-    elif xp_val >= 100: rank = "מתקדם 🥈"
+    # חישוב הדרגה (בטוח לשימוש עכשיו)
+    xp = st.session_state.xp
+    if xp >= 1000: rank = "אגדה 👑"
+    elif xp >= 600: rank = "אלוף 🏆"
+    elif xp >= 300: rank = "מקצוען 🥇"
+    elif xp >= 100: rank = "מתקדם 🥈"
     else: rank = "טירון 🥉"
 
     with st.sidebar:
