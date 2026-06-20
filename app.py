@@ -550,12 +550,28 @@ else:
     # --- שומר סף: מוודא שכל המשתנים קיימים בזיכרון ---
     u = st.session_state.logged_in_user
     db_data = st.session_state.user_db.get(u, {})
-    
-    # רשימת המשתנים שחייבים להיות קיימים
-    keys = ["xp", "stars", "score", "streak", "avatar", "current_stage", "current_q_index", "my_prizes", "age_level"]
-    for key in keys:
+
+    # כאן אנחנו מגדירים את "ערכי הבסיס" לכל משתנה שהאפליקציה צריכה
+    defaults = {
+        "xp": 0,
+        "stars": 0,
+        "score": 0,
+        "streak": 0,
+        "avatar": "😎",
+        "current_stage": 1,
+        "current_q_index": 0,
+        "my_prizes": [],
+        "age_level": "4-6",
+        "answered_current": False,  # הוספנו את זה כדי שלא יקרוס
+        "user_choice": None         # הוספנו את זה כדי שלא יקרוס
+    }
+
+    # לופ שעובר על כל המשתנים ומוודא שהם קיימים
+    for key, default_val in defaults.items():
         if key not in st.session_state:
-            st.session_state[key] = db_data.get(key, 0 if key not in ["avatar", "age_level"] else "😎")
+            # אם המשתנה חסר בזיכרון, הוא מביא אותו מה-DB.
+            # אם גם ב-DB הוא לא קיים, הוא משתמש בערך ברירת המחדל (default_val)
+            st.session_state[key] = db_data.get(key, default_val)
 
     # פונקציית סנכרון
     def sync_data():
@@ -747,7 +763,7 @@ else:
                     st.markdown(f'<div style="direction: ltr;" class="question-box">{q_data["q"]}</div>', unsafe_allow_html=True)
                     speak_text(text_en=q_data["q"])
 
-            if not st.session_state.answered_current:
+            if not st.session_state.get('answered_current', False):
                 with st.form(key=f"form_q_{q_data['id']}"):
                     choice = st.radio("בחר את התשובה הנכונה מבין האפשרויות הבאות:", q_data['options'], index=None)
                     submit_b = st.form_submit_button("בדיקת תשובה וקבלת כוכבים! ➔", use_container_width=True)
