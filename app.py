@@ -119,6 +119,72 @@ def speak_text(text_en, text_he=""):
             <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; window.speechSynthesis.speak(msg);" style="background:#e74c3c; color:white; border:2px solid black; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold; font-size: 18px;">🔊 לחץ לשמיעה באנגלית</button>
         </div>"""
     components.html(html_code, height=60)
+    # ==========================================
+# 2. מנוע האנסינים החכם, אוצר המילים והדקדוק
+# ==========================================
+if 'db_generated' not in st.session_state:
+
+    def generate_vocab_questions(raw_string, amount, is_toddler=False):
+        words = []
+        for pair in raw_string.split('|'):
+            if ':' in pair:
+                eng, heb = pair.split(':')
+                words.append((eng.strip(), heb.strip()))
+        
+        all_hebrew = [w[1] for w in words]
+        heb_to_eng = {w[1]: w[0] for w in words}
+        
+        questions = []
+        for eng, heb in words:
+            distractors = random.sample([h for h in all_hebrew if h != heb], 3)
+            options = distractors + [heb]
+            random.shuffle(options)
+            
+            if is_toddler:
+                options_with_pics = [f"{h} {toddler_pics.get(heb_to_eng.get(h, ''), '✨')}" for h in options]
+                correct_with_pic = f"{heb} {toddler_pics.get(eng, '✨')}"
+                q_text1 = f"איזו תמונה מתאימה למילה באנגלית: **{eng}**?"
+                hint1 = f"💡 רמז קסם: התשובה בעברית מתחילה באות '{heb[0]}'."
+                questions.append({
+                    "q": q_text1, "correct": correct_with_pic, "options": options_with_pics, "hint": hint1,
+                    "audio_he": f"איזו תמונה מתאימה למילה באנגלית {eng}?", "audio_en": eng
+                })
+            else:
+                q_text1 = f"What is the meaning of the word '{eng}'?"
+                hint1 = f"💡 רמז סודי: התשובה בעברית מתחילה באות '{heb[0]}'."
+                questions.append({
+                    "q": q_text1, "correct": heb, "options": options, "hint": hint1,
+                    "audio_he": "", "audio_en": q_text1
+                })
+                
+            distractors_eng = random.sample([w[0] for w in words if w[0] != eng], 3)
+            options_eng = distractors_eng + [eng]
+            random.shuffle(options_eng)
+            
+            if is_toddler:
+                options_eng_with_pics = [f"{e} {toddler_pics.get(e, '✨')}" for e in options_eng]
+                correct_eng_with_pic = f"{eng} {toddler_pics.get(eng, '✨')}"
+                q_text2 = f"מי יודע איך אומרים באנגלית את המילה '{heb}'?"
+                hint2 = f"💡 רמז קסם: התשובה באנגלית מתחילה באות '{eng[0]}'."
+                questions.append({
+                    "q": q_text2, "correct": correct_eng_with_pic, "options": options_eng_with_pics, "hint": hint2,
+                    "audio_he": f"איך אומרים {heb} באנגלית?", "audio_en": eng
+                })
+            else:
+                q_text2 = f"How do you say '{heb}' in English?"
+                hint2 = f"💡 רמז סודי: התשובה באנגלית מתחילה באות '{eng[0]}'."
+                questions.append({
+                    "q": q_text2, "correct": eng, "options": options_eng, "hint": hint2,
+                    "audio_he": "", "audio_en": q_text2
+                })
+
+        random.shuffle(questions)
+        return questions[:amount]
+
+    # ... (כאן תמשיך להוסיף את שאר הפונקציות כמו generate_dynamic_unseens וכו', וכולן צריכות להיות מוזחות פנימה תחת ה-if הזה)
+    # לאחר סיום כל הפונקציות, בסוף הבלוק של ה-if, תכתוב:
+    
+    st.session_state.db_generated = True
     if 'db_generated' not in st.session_state:
 
     def generate_vocab_questions(raw_string, amount, is_toddler=False):
