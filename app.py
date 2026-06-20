@@ -4,26 +4,15 @@ import streamlit.components.v1 as components
 import json
 import os
 import time
-import hashlib
 from datetime import datetime
 
 # ==========================================
-# הגדרות עמוד ותצוגה - חובה להיות ראשון!
-# ==========================================
-st.set_page_config(
-    page_title="ממלכת האנגלית - מהדורת Brawl Stars!",
-    page_icon="👑",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# ==========================================
-# קובץ השמירה של המשתמשים
+# קובץ השמירה של המשתמשים (מערכת גיבוי חכמה)
 # ==========================================
 USER_DB_FILE = "users_db.json"
 
 # ==========================================
-# מאגר התמונות - קישורים יציבים (ללא בעיות Hotlinking)
+# מאגר התמונות האמיתיות לפרסים ולקלפים (הורחב משמעותית!)
 # ==========================================
 PRIZE_IMAGES = {
     "🔥 קלף פוקימון Charizard VMAX": "https://images.pokemontcg.io/swsh3/20_hires.png",
@@ -55,8 +44,10 @@ ALL_SHOP_ITEMS = [
     {"name": "🎮 סוני פלייסטיישן 5", "cost": 2000, "type": "xp"}
 ]
 
+# דמויות לבחירה (Avatars)
 AVATARS = ["😎", "🦄", "🚀", "🐱‍👤", "👑", "🐉", "🤖", "🦊"]
 
+# מילון תמונות (אימוג'ים ברורים שמשמשים כתמונה) לילדי 4-6
 toddler_pics = {
     "Dog": "🐶", "Cat": "🐱", "Sun": "☀️", "Water": "💧", "Boy": "👦", "Girl": "👧",
     "Red": "🔴", "Blue": "🔵", "Green": "🟢", "Yellow": "🟡",
@@ -71,120 +62,257 @@ toddler_pics = {
     "Morning": "🌅", "Night": "🌙"
 }
 
+# הגדרות עמוד ותצוגה
+st.set_page_config(
+    page_title="ממלכת האנגלית של המקצוענים!",
+    page_icon="👑",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # ==========================================
-# עיצוב מותאם (CSS) - סגנון משחק מובייל 
+# עיצוב מותאם (CSS) משוכלל ואנימציות מודרניות
 # ==========================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;600;800&display=swap');
-    * { font-family: 'Secular One', sans-serif !important; }
-    .rtl-container { direction: rtl; text-align: right; }
-    [data-testid="stSidebar"] { direction: rtl; text-align: right; background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%); color: white !important; }
-    .stButton > button, div[data-testid="stFormSubmitButton"] button {
-        background: linear-gradient(180deg, #FFDE00 0%, #FD8A00 100%) !important;
-        border: 3px solid #1a1a1a !important; border-radius: 16px !important; color: #1a1a1a !important;
-        font-size: 22px !important; font-weight: 900 !important; box-shadow: 0px 6px 0px #1a1a1a !important; padding: 10px !important;
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap');
+    
+    * {
+        font-family: 'Rubik', sans-serif !important;
     }
-    .stButton > button:active, div[data-testid="stFormSubmitButton"] button:active { transform: translateY(6px) !important; box-shadow: 0px 0px 0px #1a1a1a !important; }
-    div[data-testid="stRadio"] label { background: white; border-radius: 16px; border: 3px solid #e0e0e0; margin-bottom: 8px; padding: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
-    div[data-testid="stRadio"] label p { font-size: 35px !important; font-weight: bold; color: #2b2d42; }
-    .question-box { font-size: 30px !important; color: #ffffff; background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); padding: 25px; border-radius: 20px; border: 4px solid #1a1a1a; box-shadow: 0 8px 0px #1a1a1a; text-align: center; margin-bottom: 30px; line-height: 1.4; }
-    .stats-bar { display: flex; justify-content: space-around; background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.3); margin-bottom: 20px; }
-    .stat-item { text-align: center; font-size: 24px; color: #FFDE00; text-shadow: 2px 2px 0px #000; }
-    .store-card { background: white; border-radius: 15px; border: 3px solid #2d2d2d; padding: 15px; text-align: center; box-shadow: 0px 5px 0px #2d2d2d; margin-bottom: 15px; color: black; }
-    [data-testid="collapsedControl"] { color: #FD8A00 !important; background-color: white !important; border-radius: 50% !important; box-shadow: 0px 2px 5px rgba(0,0,0,0.5); }
-    img { max-width: 100% !important; height: auto !important; border-radius: 10px; }
+    .rtl-container {
+        direction: rtl;
+        text-align: right;
+    }
+    [data-testid="stSidebar"] {
+        direction: rtl;
+        text-align: right;
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 2px solid #dee2e6;
+    }
+    
+    /* עיצוב תשובות - כפתורי רדיו */
+    div[data-testid="stRadio"] label p {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+        color: #2b2d42;
+        padding: 10px;
+        background: white;
+        border-radius: 12px;
+        border: 2px solid #edf2f4;
+        transition: all 0.3s ease;
+        margin-bottom: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    div[data-testid="stRadio"] label p:hover {
+        background: #f8f9fa;
+        border-color: #8d99ae;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* עיצוב שאלות מרכזי */
+    .question-box {
+        font-size: 32px !important;
+        color: #ffffff;
+        font-weight: 800;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0,198,255,0.3);
+        text-align: center;
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    /* סגנונות כרטיסים נדירים */
+    .trading-card-pokemon {
+        background: linear-gradient(135deg, #ffcc00, #ff66cc);
+        border: 4px solid #fff;
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        color: white;
+        text-shadow: 1px 1px 2px black;
+        margin-bottom: 10px;
+        animation: shine 2s infinite;
+    }
+    .trading-card-soccer {
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        border: 4px solid #e0a96d;
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        color: white;
+        text-shadow: 1px 1px 2px black;
+        margin-bottom: 10px;
+    }
+    .vip-card {
+        background: linear-gradient(135deg, #111, #444);
+        border: 4px solid gold;
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        color: gold;
+        text-shadow: 1px 1px 2px black;
+        margin-bottom: 10px;
+    }
+    
+    @keyframes shine {
+        0% { filter: brightness(1); }
+        50% { filter: brightness(1.2); }
+        100% { filter: brightness(1); }
+    }
+
+    /* חלונית הסטטיסטיקות (Duolingo Style) */
+    .stats-bar {
+        display: flex;
+        justify-content: space-around;
+        background: white;
+        padding: 15px;
+        border-radius: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+        border: 2px solid #f1f2f6;
+    }
+    .stat-item {
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    .stat-label {
+        font-size: 14px;
+        color: #747d8c;
+    }
+    
+    /* אנימציית פתיחת קלפים בכספת */
+    .flip-card {
+      background-color: transparent;
+      width: 100%;
+      height: 400px;
+      perspective: 1000px;
+      margin-bottom: 20px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .flip-card:hover .flip-card-inner, .flip-card:active .flip-card-inner {
+      transform: rotateY(180deg) scale(1.05);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .flip-card-front {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      border: 5px solid #f1c40f;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #1a1a1a;
+      border: 5px solid #f1c40f;
+    }
+    
+    /* כפתורי סאבמיט משופרים */
+    div[data-testid="stFormSubmitButton"] button {
+        background: linear-gradient(to right, #2ecc71, #27ae60) !important;
+        color: white !important;
+        font-size: 22px !important;
+        border-radius: 15px !important;
+        border: none !important;
+        padding: 10px 0 !important;
+        transition: transform 0.2s !important;
+        font-weight: bold !important;
+    }
+    div[data-testid="stFormSubmitButton"] button:hover {
+        transform: scale(1.02) !important;
+        box-shadow: 0 10px 20px rgba(46,204,113,0.4) !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
+# אפקטים קוליים (HTML5 Audio)
 def play_sound(sound_type):
-    if sound_type == "correct": audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg"></audio>"""
-    elif sound_type == "wrong": audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" type="audio/mpeg"></audio>"""
-    elif sound_type in ["level_up", "loot"]: audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" type="audio/mpeg"></audio>"""
-    else: return
+    if sound_type == "correct":
+        audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg"></audio>"""
+    elif sound_type == "wrong":
+        audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" type="audio/mpeg"></audio>"""
+    elif sound_type == "level_up":
+        audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" type="audio/mpeg"></audio>"""
+    elif sound_type == "loot":
+        audio_html = """<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" type="audio/mpeg"></audio>"""
+    else:
+        return
     st.markdown(audio_html, unsafe_allow_html=True)
 
+# פונקציית הקראה קולית 
 def speak_text(text_en, text_he=""):
     safe_en = text_en.replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
+    
     if text_he:
         safe_he = text_he.replace("'", "\\'").replace('"', '\\"').replace('\n', ' ')
         html_code = f"""
-        <div style='display:flex; justify-content:center; gap:10px; margin-bottom: 15px;'>
-            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_he}'); msg.lang='he-IL'; window.speechSynthesis.speak(msg);" style="background:#3498db; color:white; border:2px solid black; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:bold; font-size: 16px;">🔊 שמע עברית</button>
-            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; window.speechSynthesis.speak(msg);" style="background:#e74c3c; color:white; border:2px solid black; padding:8px 15px; border-radius:10px; cursor:pointer; font-weight:bold; font-size: 16px;">🔊 שמע אנגלית</button>
-        </div>"""
+        <div style='display:flex; justify-content:center; gap:15px; margin-bottom: 5px;'>
+            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_he}'); msg.lang='he-IL'; msg.rate=0.85; window.speechSynthesis.speak(msg);" 
+            style="background-color:#3498db; color:white; border:none; padding:10px 20px; border-radius:12px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">
+                🔊 הקרא שאלה בעברית
+            </button>
+            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; msg.rate=0.85; window.speechSynthesis.speak(msg);" 
+            style="background-color:#F39C12; color:white; border:none; padding:10px 20px; border-radius:12px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">
+                🔊 הקרא באנגלית
+            </button>
+        </div>
+        """
     else:
         html_code = f"""
-        <div style='display:flex; justify-content:center; margin-bottom: 15px;'>
-            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; window.speechSynthesis.speak(msg);" style="background:#e74c3c; color:white; border:2px solid black; padding:10px 20px; border-radius:10px; cursor:pointer; font-weight:bold; font-size: 18px;">🔊 לחץ לשמיעה באנגלית</button>
-        </div>"""
+        <div style='display:flex; justify-content:center; margin-bottom: 5px;'>
+            <button onclick="var msg = new SpeechSynthesisUtterance('{safe_en}'); msg.lang='en-US'; msg.rate=0.85; window.speechSynthesis.speak(msg);" 
+            style="background-color:#F39C12; color:white; border:none; padding:10px 20px; border-radius:12px; cursor:pointer; font-size:18px; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">
+                🔊 לחץ כאן להקראת הטקסט באנגלית
+            </button>
+        </div>
+        """
     components.html(html_code, height=60)
-    # ==========================================
-# 2. מנוע האנסינים החכם, אוצר המילים והדקדוק
+
+# ==========================================
+# 1. מנוע ג'נרטור מתקדם עם חוקים ורמזים חכמים
 # ==========================================
 if 'db_generated' not in st.session_state:
-
-    def generate_vocab_questions(raw_string, amount, is_toddler=False):
-        words = []
-        for pair in raw_string.split('|'):
-            if ':' in pair:
-                eng, heb = pair.split(':')
-                words.append((eng.strip(), heb.strip()))
-        
-        all_hebrew = [w[1] for w in words]
-        heb_to_eng = {w[1]: w[0] for w in words}
-        
-        questions = []
-        for eng, heb in words:
-            distractors = random.sample([h for h in all_hebrew if h != heb], 3)
-            options = distractors + [heb]
-            random.shuffle(options)
-            
-            if is_toddler:
-                options_with_pics = [f"{h} {toddler_pics.get(heb_to_eng.get(h, ''), '✨')}" for h in options]
-                correct_with_pic = f"{heb} {toddler_pics.get(eng, '✨')}"
-                q_text1 = f"איזו תמונה מתאימה למילה באנגלית: **{eng}**?"
-                hint1 = f"💡 רמז קסם: התשובה בעברית מתחילה באות '{heb[0]}'."
-                questions.append({
-                    "q": q_text1, "correct": correct_with_pic, "options": options_with_pics, "hint": hint1,
-                    "audio_he": f"איזו תמונה מתאימה למילה באנגלית {eng}?", "audio_en": eng
-                })
-            else:
-                q_text1 = f"What is the meaning of the word '{eng}'?"
-                hint1 = f"💡 רמז סודי: התשובה בעברית מתחילה באות '{heb[0]}'."
-                questions.append({
-                    "q": q_text1, "correct": heb, "options": options, "hint": hint1,
-                    "audio_he": "", "audio_en": q_text1
-                })
-                
-            distractors_eng = random.sample([w[0] for w in words if w[0] != eng], 3)
-            options_eng = distractors_eng + [eng]
-            random.shuffle(options_eng)
-            
-            if is_toddler:
-                options_eng_with_pics = [f"{e} {toddler_pics.get(e, '✨')}" for e in options_eng]
-                correct_eng_with_pic = f"{eng} {toddler_pics.get(eng, '✨')}"
-                q_text2 = f"מי יודע איך אומרים באנגלית את המילה '{heb}'?"
-                hint2 = f"💡 רמז קסם: התשובה באנגלית מתחילה באות '{eng[0]}'."
-                questions.append({
-                    "q": q_text2, "correct": correct_eng_with_pic, "options": options_eng_with_pics, "hint": hint2,
-                    "audio_he": f"איך אומרים {heb} באנגלית?", "audio_en": eng
-                })
-            else:
-                q_text2 = f"How do you say '{heb}' in English?"
-                hint2 = f"💡 רמז סודי: התשובה באנגלית מתחילה באות '{eng[0]}'."
-                questions.append({
-                    "q": q_text2, "correct": eng, "options": options_eng, "hint": hint2,
-                    "audio_he": "", "audio_en": q_text2
-                })
-
-        random.shuffle(questions)
-        return questions[:amount]
-
-    # ... (כאן תמשיך להוסיף את שאר הפונקציות כמו generate_dynamic_unseens וכו', וכולן צריכות להיות מוזחות פנימה תחת ה-if הזה)
-    # לאחר סיום כל הפונקציות, בסוף הבלוק של ה-if, תכתוב:
     
-    st.session_state.db_generated = True
     if 'db_generated' not in st.session_state:
 
     def generate_vocab_questions(raw_string, amount, is_toddler=False):
@@ -369,8 +497,8 @@ if 'db_generated' not in st.session_state:
         "13-15": build_massive_pool(raw_vocab_13_15, grammar_13_15, "13-15")
     }
     st.session_state.db_generated = True
-    # ==========================================
-# 2. מערכת התחברות חכמה 
+# ==========================================
+# 2. מערכת התחברות חכמה ושמירה אוטומטית (נשמרת גם כשהדפדפן נסגר!)
 # ==========================================
 def load_db():
     if os.path.exists(USER_DB_FILE):
@@ -385,8 +513,10 @@ def save_db(db_data):
     with open(USER_DB_FILE, "w", encoding="utf-8") as f:
         json.dump(db_data, f, ensure_ascii=False, indent=4)
 
-if 'user_db' not in st.session_state: st.session_state.user_db = load_db()
+if 'user_db' not in st.session_state:
+    st.session_state.user_db = load_db()
 
+# חילוץ משתמש מ-URL (כדי שלא יתנתק כשהדף מתרענן ביום שלמחרת)
 query_params = st.query_params
 if 'logged_in_user' not in st.session_state:
     if "user" in query_params and query_params["user"] in st.session_state.user_db:
@@ -396,20 +526,14 @@ if 'logged_in_user' not in st.session_state:
 
 if 'show_vault' not in st.session_state: st.session_state.show_vault = False
 
-def get_player_title(xp):
-    if xp < 200: return "מתחיל 🥉"
-    if xp < 800: return "לומד מתקדם 🥈"
-    if xp < 2000: return "אלוף האנגלית 🥇"
-    return "אגדת ברולסטארס 👑"
-
 if st.session_state.logged_in_user is None:
     st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
     st.title("👑 ממלכת האנגלית של המקצוענים!")
     st.subheader("שחקו, למדו, אספו קלפים נדירים ושדרגו את השחקן שלכם!")
     st.info("💡 **הוראות שמירה חשובות:** המערכת שלנו זוכרת הכל! שמרו את הכתובת במועדפים כדי לחזור לשחקן שלכם בדיוק איפה שעצרתם.")
-
+    
     tab_login, tab_register, tab_backup = st.tabs(["👋 התחברות", "✨ משתמש חדש", "💾 שחזור ממשובש"])
-
+    
     with tab_login:
         with st.form("form_login"):
             u_name = st.text_input("שם משתמש:")
@@ -418,12 +542,13 @@ if st.session_state.logged_in_user is None:
             if submit_l:
                 if u_name in st.session_state.user_db and st.session_state.user_db[u_name]["password"] == u_pass:
                     st.session_state.logged_in_user = u_name
+                    # שמירת התחברות אוטומטית ב-URL
                     st.query_params["user"] = u_name
                     data = st.session_state.user_db[u_name]
                     st.session_state.age_level = data.get("age_level", "4-6")
                     st.session_state.score = data.get("score", 0)
                     st.session_state.stars = data.get("stars", 0)
-                    st.session_state.xp = data.get("xp", 0) 
+                    st.session_state.xp = data.get("xp", 0) # מערכת XP חדשה
                     st.session_state.avatar = data.get("avatar", "😎")
                     st.session_state.current_stage = data.get("current_stage", 1)
                     st.session_state.current_q_index = data.get("current_q_index", 0)
@@ -435,13 +560,14 @@ if st.session_state.logged_in_user is None:
                     st.rerun()
                 else:
                     st.error("שם משתמש או סיסמה שגויים. נסו שוב!")
-
+                    
     with tab_register:
         with st.form("form_reg"):
             new_u = st.text_input("בחר שם משתמש:")
             new_p = st.text_input("בחר סיסמה:", type="password")
             age_select = st.radio("בחר את קבוצת הגיל שלך:", ["4-6", "7-9", "10-12", "13-15"], horizontal=True)
             avatar_select = st.radio("בחר סמל שחקן (אווטאר):", AVATARS, horizontal=True)
+            
             submit_r = st.form_submit_button("צור חשבון והתחל להרוויח כוכבים! 🌟")
             if submit_r:
                 if not new_u or not new_p:
@@ -459,7 +585,7 @@ if st.session_state.logged_in_user is None:
                     st.session_state.age_level = age_select
                     st.session_state.avatar = avatar_select
                     st.session_state.score = 0
-                    st.session_state.stars = 50 
+                    st.session_state.stars = 50 # מתנת פתיחה!
                     st.session_state.xp = 0
                     st.session_state.current_stage = 1
                     st.session_state.current_q_index = 0
@@ -470,7 +596,7 @@ if st.session_state.logged_in_user is None:
                     st.session_state.show_vault = False
                     st.toast("🎉 קיבלת 50 כוכבים במתנה להרשמה!")
                     st.rerun()
-                    
+
     with tab_backup:
         st.write("במידה והמערכת התאפסה, ניתן לייבא קובץ שמירה כאן:")
         uploaded_file = st.file_uploader("העלה קובץ גיבוי (users_db.json)", type="json")
@@ -485,7 +611,7 @@ if st.session_state.logged_in_user is None:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 3. מסך המשחק הראשי (וכספת הפרסים)
+# 3. מסך המשחק הראשי (וכספת הפרסים עם האנימציות)
 # ==========================================
 else:
     def sync_data():
@@ -503,15 +629,13 @@ else:
         })
         save_db(st.session_state.user_db)
 
+    # --- תפריט צד ימני (Sidebar) משודרג כמו בדואולינגו ---
     with st.sidebar:
         st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
         st.markdown(f"<h1 style='text-align: center; font-size: 50px; margin:0;'>{st.session_state.avatar}</h1>", unsafe_allow_html=True)
         st.header(f"שלום, {st.session_state.logged_in_user}!")
-
-        # תואר המשתמש מבוסס XP
-        player_title = get_player_title(st.session_state.xp)
-        st.markdown(f"<p style='text-align: center; color: #FFDE00; font-weight: bold;'>{player_title}</p>", unsafe_allow_html=True)
-
+        
+        # אזור הסטטיסטיקות
         st.markdown(f"""
         <div class="stats-bar">
             <div class="stat-item">⭐<br>{st.session_state.stars}<br><span class="stat-label">כוכבים</span></div>
@@ -519,9 +643,9 @@ else:
             <div class="stat-item">⚡<br>{st.session_state.xp}<br><span class="stat-label">XP</span></div>
         </div>
         """, unsafe_allow_html=True)
-
+        
         st.markdown(f"### 🆙 שלב: **{st.session_state.current_stage}** / 50")
-
+        
         new_age = st.selectbox(
             "🔄 שנה רמה:",
             ["4-6", "7-9", "10-12", "13-15"],
@@ -533,46 +657,80 @@ else:
             sync_data()
             st.toast(f"🚀 הרמה שונתה בהצלחה לגילאי {new_age}!")
             st.rerun()
-
+            
         st.write("---")
         
-        # חנות יומית מתחלפת המבוססת על השם של הילד והתאריך
-        st.subheader("🛒 החנות היומית שלך!")
-        st.caption("מתחלפת כל יום! חזור מחר למבצעים חדשים.")
+        st.subheader("🛍️ חנות הקלפים והפרסים")
+        shop_items = [
+            {"name": "🍦 גלידת קצפת ענקית", "cost": 20, "stage": 1, "type": "normal"},
+            {"name": "🐉 דרקון אש חמוד", "cost": 40, "stage": 1, "type": "normal"},
+            {"name": "🔥 קלף פוקימון Charizard VMAX נדיר!", "cost": 100, "stage": 5, "type": "pokemon"},
+            {"name": "⚡ קלף פוקימון Pikachu Gold Star", "cost": 150, "stage": 5, "type": "pokemon"},
+            {"name": "🌊 קלף פוקימון Blastoise Holographic", "cost": 150, "stage": 6, "type": "pokemon"},
+            {"name": "⚽ חפיסת קלפי Adrenalyn XL זהב", "cost": 200, "stage": 10, "type": "soccer"},
+            {"name": "🏆 קלף מוזהב נדיר Match Attax", "cost": 300, "stage": 15, "type": "soccer"},
+            {"name": "🌟 מארז קומבו Match Attax 2025!", "cost": 350, "stage": 18, "type": "soccer"},
+            {"name": "📱 אייפון 15 פרו מקס אמיתי!", "cost": 400, "stage": 25, "type": "gadget"},
+            {"name": "🎮 סוני פלייסטיישן 5", "cost": 500, "stage": 30, "type": "gadget"},
+            {"name": "🦸‍♂️ קלף ספיידרמן נדיר מארוול", "cost": 600, "stage": 35, "type": "marvel"},
+            {"name": "🦄 בובת חד קרן ענקית", "cost": 700, "stage": 40, "type": "normal"},
+            {"name": "🏎️ מכונית על למבורגיני", "cost": 800, "stage": 45, "type": "normal"},
+            {"name": "👑 כתר יהלומים של מלך האנגלית", "cost": 1000, "stage": 50, "type": "vip"},
+            {"name": "📼 קלטת מוזיקה נדירה של Stranger Things", "cost": 1500, "stage": 50, "type": "vip"}
+        ]
         
-        seed_str = f"{st.session_state.logged_in_user}_{datetime.now().strftime('%Y-%m-%d')}"
-        seed = int(hashlib.md5(seed_str.encode()).hexdigest(), 16)
-        shop_random = random.Random(seed)
-        daily_shop_items = shop_random.sample(ALL_SHOP_ITEMS, 4)
+        # כפתור Gacha Loot Box - מנגנון התמכרות חיובית!
+        st.markdown('<div class="vip-card" style="border-color: #9b59b6;">🎁 <b>קופסת הפתעה מסתורית!</b><br>הגרלת קלף רנדומלי! (50 כוכבים)</div>', unsafe_allow_html=True)
+        if st.button("פתח קופסת הפתעה ב-50 ⭐", use_container_width=True):
+            if st.session_state.stars >= 50:
+                st.session_state.stars -= 50
+                random_prize = random.choice([i["name"] for i in shop_items if i["name"] not in st.session_state.my_prizes])
+                if random_prize:
+                    st.session_state.my_prizes.append(random_prize)
+                    play_sound("loot")
+                    st.balloons()
+                    st.success(f"🎉 וואו! פתחתם את הקופסה וקיבלתם: **{random_prize}**!")
+                    sync_data()
+                    time.sleep(2)
+                    st.rerun()
+                else:
+                    st.warning("יש לכם כבר את כל הפרסים במשחק!")
+            else:
+                st.error("אין לכם מספיק כוכבים. המשיכו לשחק!")
         
-        for item in daily_shop_items:
+        st.write("---")
+
+        for item in shop_items:
+            is_locked = st.session_state.current_stage < item['stage']
             is_owned = item['name'] in st.session_state.my_prizes
-            if not is_owned:
-                currency = "⭐" if item["type"] == "stars" else "⚡"
-                if st.button(f"קנה: {item['name']}\n({item['cost']} {currency})", key=f"buy_{item['name']}", use_container_width=True):
-                    can_buy = False
-                    if item["type"] == "stars" and st.session_state.stars >= item['cost']:
-                        st.session_state.stars -= item['cost']
-                        can_buy = True
-                    elif item["type"] == "xp" and st.session_state.xp >= item['cost']:
-                        st.session_state.xp -= item['cost']
-                        can_buy = True
-                        
-                    if can_buy:
-                        st.session_state.my_prizes.append(item['name'])
-                        play_sound("loot")
-                        sync_data()
-                        st.balloons()
-                        st.rerun()
-                    else:
-                        st.error(f"אין מספיק {currency}!")
-
+            disabled_btn = st.session_state.stars < item['cost'] or is_owned or is_locked
+            
+            btn_text = f"🔒 נפתח בשלב {item['stage']}" if is_locked else ("ברשותך! ✅" if is_owned else f"קנה ב-{item['cost']} ⭐")
+            
+            if not is_locked and item['type'] == 'pokemon':
+                st.markdown(f'<div class="trading-card-pokemon">⭐ POKÉMON CARD ⭐<br><b>{item["name"].split("!")[0]}</b></div>', unsafe_allow_html=True)
+            elif not is_locked and item['type'] == 'soccer':
+                st.markdown(f'<div class="trading-card-soccer">⚽ MATCH ATTAX / ADRENALYN ⚽<br><b>{item["name"]}</b></div>', unsafe_allow_html=True)
+            elif not is_locked and item['type'] in ['gadget', 'marvel', 'vip']:
+                st.markdown(f'<div class="vip-card">✨ VIP ITEM ✨<br><b>{item["name"]}</b></div>', unsafe_allow_html=True)
+            else:
+                st.write(f"**{item['name']}**")
+                
+            if st.button(btn_text, key=f"buy_{item['name']}", disabled=disabled_btn, use_container_width=True):
+                st.session_state.stars -= item['cost']
+                st.session_state.my_prizes.append(item['name'])
+                play_sound("loot")
+                sync_data()
+                st.balloons()
+                st.toast("🎉 איזה כיף! הפרס נכנס לכספת שלך!")
+                time.sleep(1)
+                st.rerun()
         st.write("---")
-
+        
         if st.button("💼 כספת הפרסים והקלפים שלי!", type="primary", use_container_width=True):
             st.session_state.show_vault = True
             st.rerun()
-
+            
         st.download_button(
             label="💾 הורד קובץ גיבוי של השחקן",
             data=json.dumps(st.session_state.user_db, ensure_ascii=False, indent=4),
@@ -580,7 +738,7 @@ else:
             mime="application/json",
             use_container_width=True
         )
-
+                
         if st.button("🚪 התנתק ושמור", use_container_width=True):
             sync_data()
             st.session_state.logged_in_user = None
@@ -589,32 +747,43 @@ else:
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # --- חלון כספת הפרסים ---
     if st.session_state.show_vault:
         st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
         st.title("💼 אלבום הקלפים וכספת הפרסים שלי!")
-
+        st.subheader("ריחפו עם העכבר (או לחצו במסך מגע) על חבילות הקלפים כדי לפתוח ולחשוף אותם!")
+        
         if not st.session_state.my_prizes:
-            st.info("הכספת שלכם ריקה בינתיים... חזרו למשחק, הרוויחו כוכבים וקנו מתנות בחנות היומית!")
+            st.info("הכספת שלכם ריקה בינתיים... חזרו למשחק, הרוויחו כוכבים וקנו קלפי פוקימון ופרסים נדירים בחנות!")
         else:
-            cols = st.columns(2)
+            cols = st.columns(3)
             for i, prize_name in enumerate(st.session_state.my_prizes):
-                with cols[i % 2]:
-                    st.markdown('<div class="store-card">', unsafe_allow_html=True)
-                    st.write(f"**{prize_name}**")
-                    image_url = PRIZE_IMAGES.get(prize_name, "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg")
-                    st.image(image_url, use_container_width=True) 
-                    st.markdown('</div>', unsafe_allow_html=True)
-
+                with cols[i % 3]:
+                    image_url = PRIZE_IMAGES.get(prize_name, "https://via.placeholder.com/300")
+                    html_card = f"""
+                    <div class="flip-card">
+                      <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                          🎁<br>הקליקו/רחפו לפתיחת החבילה!<br><br><span style="font-size:18px;">{prize_name.split('!')[0]}</span>
+                        </div>
+                        <div class="flip-card-back" style="background-image: url('{image_url}');">
+                        </div>
+                      </div>
+                    </div>
+                    """
+                    st.markdown(html_card, unsafe_allow_html=True)
+        
         st.write("---")
         if st.button("🔙 חזור להמשיך לשחק", type="primary"):
             st.session_state.show_vault = False
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-
+        
+    # --- חלון המשחק הראשי ---
     else:
         st.markdown('<div class="rtl-container">', unsafe_allow_html=True)
         st.title(f"👑 שלב {st.session_state.current_stage} 👑")
-
+        
         if st.session_state.current_stage > 50:
             st.balloons()
             st.success("🏆 מדהים! השלמתם את כל 50 השלבים ופתרתם את כל השאלות ברמה שלכם!")
@@ -622,11 +791,13 @@ else:
             pool = st.session_state.questions_by_age[st.session_state.age_level]
             global_index = ((st.session_state.current_stage - 1) * 8) + st.session_state.current_q_index
             q_data = pool[global_index]
-
+            
+            # Progress bar יפה
             progress = (st.session_state.current_q_index) / 8.0
             st.progress(progress)
             st.markdown(f"**שאלה {st.session_state.current_q_index + 1} מתוך 8**")
-
+            
+            # מערכת הקראה חכמה ודינמית 
             if st.session_state.age_level == "4-6":
                 st.markdown(f'<div class="question-box">{q_data["q"]}</div>', unsafe_allow_html=True)
                 speak_text(text_en=q_data.get("audio_en", ""), text_he=q_data.get("audio_he", ""))
@@ -638,12 +809,12 @@ else:
                 else:
                     st.markdown(f'<div style="direction: ltr;" class="question-box">{q_data["q"]}</div>', unsafe_allow_html=True)
                     speak_text(text_en=q_data["q"])
-
+                
             if not st.session_state.answered_current:
                 with st.form(key=f"form_q_{q_data['id']}"):
                     choice = st.radio("בחר את התשובה הנכונה מבין האפשרויות הבאות:", q_data['options'], index=None)
                     submit_b = st.form_submit_button("בדיקת תשובה וקבלת כוכבים! ➔", use_container_width=True)
-
+                    
                     if submit_b:
                         if choice is None:
                             st.warning("אופס! שכחת לבחור תשובה.")
@@ -653,18 +824,18 @@ else:
                             if choice == q_data['correct']:
                                 st.session_state.score += 1
                                 st.session_state.stars += 25
-                                st.session_state.xp += 15
+                                st.session_state.xp += 10
                                 st.session_state.streak += 1
                                 play_sound("correct")
                             else:
                                 st.session_state.streak = 0
                                 play_sound("wrong")
-                            sync_data() 
+                            sync_data() # שמירה מיידית לאחר תשובה!
                             st.rerun()
-
+                            
                 with st.expander("💡 צריך עזרה? לחץ כאן לקבלת רמז סודי וחכם"):
                     st.info(q_data["hint"])
-
+                    
             else:
                 for opt in q_data['options']:
                     if opt == q_data['correct']:
@@ -673,12 +844,12 @@ else:
                         st.error(f"🔴 **{opt}** (הבחירה שלך)")
                     else:
                         st.write(f"⚪ {opt}")
-
+                        
                 if st.session_state.user_choice == q_data['correct']:
-                    st.markdown("## 🎉 כל הכבוד אלופים! צדקתם והרווחתם **25 ⭐ ו-15 ⚡ XP!**")
+                    st.markdown("## 🎉 כל הכבוד אלופים! צדקתם והרווחתם **25 כוכבי קסם!** ⭐ ו-10 XP! ⚡")
                 else:
                     st.markdown(f"## 🌟 לא נורא, במשחק תמיד אפשר לנסות שוב! התשובה היא: **{q_data['correct']}**")
-
+                    
                 if st.button("קדימה, לשאלה הבאה! 🚀", type="primary", use_container_width=True):
                     st.session_state.current_q_index += 1
                     if st.session_state.current_q_index >= 8:
@@ -688,10 +859,10 @@ else:
                         st.session_state.xp += 50
                         play_sound("level_up")
                         st.toast("🏆 איזה אלופים! סיימתם שלב שלם וקיבלתם בונוס של 100 כוכבים ו-50 XP!")
-
+                        
                     st.session_state.answered_current = False
                     st.session_state.user_choice = None
-                    sync_data() 
+                    sync_data() # גיבוי מיידי לפני מעבר שאלה
                     st.rerun()
-
+                    
         st.markdown('</div>', unsafe_allow_html=True)
